@@ -1,0 +1,17 @@
+canvas {
+	background-color: #f0f0f0;
+	border: 1px solid #d3d3d3;
+	border-radius: 5px;
+	width: inherit;
+}
+body {
+	margin-bottom: 20px;
+}
+
+.btn-color {
+	background-color: #03162c;
+}
+
+.btn-color:hover {
+	background-color: #010a13;
+}
