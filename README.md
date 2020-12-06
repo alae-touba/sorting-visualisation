@@ -23,4 +23,4 @@ currently implemented algorithms are:
 
 # App Url
 
-Here is the url for the app: []()
+Here is the url for the app: [https://alae-touba.github.io/sorting-visualisation/index.html](https://alae-touba.github.io/sorting-visualisation/index.html)
