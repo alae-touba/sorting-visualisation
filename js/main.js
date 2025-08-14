@@ -56,7 +56,7 @@ function renderBars(algoName, options = {}) {
   const { highlight = new Map() } = options;
   const canvas = document.getElementById(`canvas-${algoName}`);
   const ctx = canvas.getContext("2d");
-  const algo = algorithms.find((a) => a.name === algoName);
+  const algo = algorithmsConfig.find((a) => a.name === algoName);
 
   clearCanvas(algoName);
 
@@ -86,7 +86,7 @@ function swap(arr, i, j) {
 }
 
 // ---------------- Algorithms ----------------
-const algorithms = [
+const algorithmsConfig = [
   {
     name: "shellSort",
     barSpacing: 8,
@@ -238,7 +238,7 @@ const algorithms = [
 // ---------------- Generation & Display ----------------
 function generateBarHeights(algoName) {
   const canvas = document.getElementById(`canvas-${algoName}`);
-  const algo = algorithms.find((a) => a.name === algoName);
+  const algo = algorithmsConfig.find((a) => a.name === algoName);
 
   algo.barHeights = [];
   const barSpacing = algo.barSpacing;
@@ -249,16 +249,15 @@ function generateBarHeights(algoName) {
   }
 }
 
-function getAlgoLongName(algoName) {
-  // adds a space before 'Sort' and casing
+function formatAlgoName(algoName) {
   const i = algoName.indexOf("Sort");
   const pretty = algoName.substr(0, i) + " Sort";
   return pretty.charAt(0).toUpperCase() + pretty.slice(1);
 }
 
 // Build UI
-for (let i = 0; i < algorithms.length; i++) {
-  const algo = algorithms[i];
+for (let i = 0; i < algorithmsConfig.length; i++) {
+  const algo = algorithmsConfig[i];
 
   const col = document.createElement("div");
   col.className = "col-lg-6 col-md-12 mb-4";
@@ -271,7 +270,7 @@ for (let i = 0; i < algorithms.length; i++) {
   header.className = "card-header d-flex justify-content-between align-items-center";
   const title = document.createElement("h5");
   title.className = "mb-0";
-  title.textContent = getAlgoLongName(algo.name);
+  title.textContent = formatAlgoName(algo.name);
   const info = document.createElement("small");
   info.className = "text-muted";
   info.title = "Best/Avg/Worst: see docs";
@@ -341,7 +340,7 @@ let resizeTimer = null;
 window.addEventListener("resize", () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
-    algorithms.forEach((algo) => {
+    algorithmsConfig.forEach((algo) => {
       const canvas = document.getElementById(`canvas-${algo.name}`);
       setCanvasSizeToParent(canvas);
       generateBarHeights(algo.name);
@@ -356,7 +355,7 @@ for (let i = 0; i < sortButtons.length; i++) {
   sortButtons[i].addEventListener("click", async (e) => {
     const classes = e.target.className.split(" ");
     const algoName = classes[classes.length - 1];
-    const algo = algorithms.find((a) => a.name === algoName);
+    const algo = algorithmsConfig.find((a) => a.name === algoName);
     await algo.sort();
   });
 }
@@ -366,7 +365,7 @@ for (let i = 0; i < removeLinesButtons.length; i++) {
   removeLinesButtons[i].addEventListener("click", (e) => {
     const classes = e.target.className.split(" ");
     const algoName = classes[classes.length - 1];
-    const algo = algorithms.find((a) => a.name === algoName);
+    const algo = algorithmsConfig.find((a) => a.name === algoName);
     if (algo.barSpacing < 30) {
       algo.barSpacing += 1;
       const canvas = document.getElementById(`canvas-${algoName}`);
@@ -382,7 +381,7 @@ for (let i = 0; i < addLinesButtons.length; i++) {
   addLinesButtons[i].addEventListener("click", (e) => {
     const classes = e.target.className.split(" ");
     const algoName = classes[classes.length - 1];
-    const algo = algorithms.find((a) => a.name === algoName);
+    const algo = algorithmsConfig.find((a) => a.name === algoName);
     if (algo.barSpacing > 3) {
       algo.barSpacing -= 1;
       const canvas = document.getElementById(`canvas-${algoName}`);
@@ -398,7 +397,7 @@ for (let i = 0; i < newArrayButtons.length; i++) {
   newArrayButtons[i].addEventListener("click", (e) => {
     const classes = e.target.className.split(" ");
     const algoName = classes[classes.length - 1];
-    const algo = algorithms.find((a) => a.name === algoName);
+    const algo = algorithmsConfig.find((a) => a.name === algoName);
     algo.barSpacing = currentBarSpacing();
     const canvas = document.getElementById(`canvas-${algoName}`);
     setCanvasSizeToParent(canvas);
@@ -414,9 +413,9 @@ buttonSortAll.addEventListener("click", async () => {
   buttonSortAll.disabled = true;
   buttonResetAll.disabled = true;
   // disable each card
-  algorithms.forEach((a) => toggleAlgorithmControls(a.name, true));
-  await Promise.all(algorithms.map((a) => a.sort()));
-  algorithms.forEach((a) => toggleAlgorithmControls(a.name, false));
+  algorithmsConfig.forEach((a) => toggleAlgorithmControls(a.name, true));
+  await Promise.all(algorithmsConfig.map((a) => a.sort()));
+  algorithmsConfig.forEach((a) => toggleAlgorithmControls(a.name, false));
   buttonSortAll.disabled = false;
   buttonResetAll.disabled = false;
 });
@@ -424,19 +423,19 @@ buttonSortAll.addEventListener("click", async () => {
 buttonResetAll.addEventListener("click", () => {
   document.getElementById("speedRange").value = 40;
   document.getElementById("densityRange").value = 8;
-  for (let i = 0; i < algorithms.length; i++) {
-    algorithms[i].barSpacing = currentBarSpacing();
-    const canvas = document.getElementById(`canvas-${algorithms[i].name}`);
+  for (let i = 0; i < algorithmsConfig.length; i++) {
+    algorithmsConfig[i].barSpacing = currentBarSpacing();
+    const canvas = document.getElementById(`canvas-${algorithmsConfig[i].name}`);
     setCanvasSizeToParent(canvas);
-    generateBarHeights(algorithms[i].name);
-    renderBars(algorithms[i].name);
+    generateBarHeights(algorithmsConfig[i].name);
+    renderBars(algorithmsConfig[i].name);
   }
 });
 
 // global sliders
 document.getElementById("densityRange").addEventListener("input", (e) => {
   const newBarSpacing = Number(e.target.value);
-  for (const algo of algorithms) {
+  for (const algo of algorithmsConfig) {
     algo.barSpacing = newBarSpacing;
     generateBarHeights(algo.name);
     renderBars(algo.name);
