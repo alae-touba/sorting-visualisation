@@ -52,7 +52,7 @@ function setCanvasSizeToParent(canvas) {
   canvas.height = Math.round(parseFloat(getComputedStyle(canvas).height));
 }
 
-function display(algoName, options = {}) {
+function renderBars(algoName, options = {}) {
   const { highlight = new Map() } = options;
   const canvas = document.getElementById(`canvas-${algoName}`);
   const ctx = canvas.getContext("2d");
@@ -106,7 +106,7 @@ const algorithms = [
 
             clearCanvas(this.name);
             const h = new Map([[start, "#ff7f50"], [end, "#ff7f50"]]);
-            display(this.name, { highlight: h });
+            renderBars(this.name, { highlight: h });
             await sleep(currentDelay());
 
             let tmpStart = start;
@@ -116,7 +116,7 @@ const algorithms = [
 
               clearCanvas(this.name);
               const hh = new Map([[previous, "#ff7f50"], [tmpStart, "#ff7f50"]]);
-              display(this.name, { highlight: hh });
+              renderBars(this.name, { highlight: hh });
               await sleep(currentDelay());
 
               tmpStart = previous;
@@ -149,14 +149,14 @@ const algorithms = [
           swap(arr, i, j);
           clearCanvas(this.name);
           const h = new Map([[i, "#ff7f50"], [j, "#ff7f50"], [end, "#ffd54f"]]); // pivot yellow
-          display(this.name, { highlight: h });
+          renderBars(this.name, { highlight: h });
           await sleep(currentDelay());
         }
       }
       swap(arr, i + 1, end);
       clearCanvas(this.name);
       const h2 = new Map([[i + 1, "#ff7f50"], [end, "#ffd54f"]]);
-      display(this.name, { highlight: h2 });
+      renderBars(this.name, { highlight: h2 });
       await sleep(currentDelay());
       return i + 1;
     },
@@ -184,7 +184,7 @@ const algorithms = [
               swap(this.barHeights, j, j + 1);
               clearCanvas(this.name);
               const h = new Map([[j, "#ff7f50"], [j + 1, "#ff7f50"]]);
-              display(this.name, { highlight: h });
+              renderBars(this.name, { highlight: h });
               await sleep(currentDelay());
             }
           }
@@ -209,7 +209,7 @@ const algorithms = [
         swap(this.barHeights, indexMax, this.barHeights.length - 1 - i);
         clearCanvas(this.name);
         const h = new Map([[indexMax, "#ff7f50"], [this.barHeights.length - 1 - i, "#ff7f50"]]);
-        display(this.name, { highlight: h });
+        renderBars(this.name, { highlight: h });
         await sleep(currentDelay());
       }
       toggleAlgorithmControls(this.name, false);
@@ -228,7 +228,7 @@ const algorithms = [
           k--;
           clearCanvas(this.name);
           const h = new Map([[k, "#ff7f50"], [k + 1, "#ff7f50"]]);
-          display(this.name, { highlight: h });
+          renderBars(this.name, { highlight: h });
           await sleep(currentDelay());
         }
       }
@@ -335,7 +335,7 @@ for (let i = 0; i < algorithms.length; i++) {
   setCanvasSizeToParent(canvas);
   algo.step = currentStep();
   generateBarHeights(algo.name);
-  display(algo.name);
+  renderBars(algo.name);
 }
 
 // resize handler
@@ -347,7 +347,7 @@ window.addEventListener("resize", () => {
       const canvas = document.getElementById(`canvas-${algo.name}`);
       setCanvasSizeToParent(canvas);
       generateBarHeights(algo.name);
-      display(algo.name);
+      renderBars(algo.name);
     });
   }, 120);
 });
@@ -374,7 +374,7 @@ for (let i = 0; i < removeLinesButtons.length; i++) {
       const canvas = document.getElementById(`canvas-${algoName}`);
       setCanvasSizeToParent(canvas);
       generateBarHeights(algoName);
-      display(algoName);
+      renderBars(algoName);
     }
   });
 }
@@ -390,7 +390,7 @@ for (let i = 0; i < addLinesButtons.length; i++) {
       const canvas = document.getElementById(`canvas-${algoName}`);
       setCanvasSizeToParent(canvas);
       generateBarHeights(algoName);
-      display(algoName);
+      renderBars(algoName);
     }
   });
 }
@@ -405,7 +405,7 @@ for (let i = 0; i < newArrayButtons.length; i++) {
     const canvas = document.getElementById(`canvas-${algoName}`);
     setCanvasSizeToParent(canvas);
     generateBarHeights(algoName);
-    display(algoName);
+    renderBars(algoName);
   });
 }
 
@@ -431,7 +431,7 @@ buttonResetAll.addEventListener("click", () => {
     const canvas = document.getElementById(`canvas-${algorithms[i].name}`);
     setCanvasSizeToParent(canvas);
     generateBarHeights(algorithms[i].name);
-    display(algorithms[i].name);
+    renderBars(algorithms[i].name);
   }
 });
 
@@ -441,7 +441,7 @@ document.getElementById("densityRange").addEventListener("input", (e) => {
   for (const algo of algorithms) {
     algo.step = newStep;
     generateBarHeights(algo.name);
-    display(algo.name);
+    renderBars(algo.name);
   }
 });
 
