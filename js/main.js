@@ -171,14 +171,14 @@ const algorithmsConfig = [
     barSpacing: 8,
     barHeights: [],
     async sort() {
-      (this.name, true);
-      let isSorted = false;
+      toggleAlgorithmControls(this.name, true);
+      let alreadySorted = false;
       for (let i = 0; i < this.barHeights.length - 1; i++) {
-        if (!isSorted) {
-          isSorted = true;
+        if (!alreadySorted) {
+          alreadySorted = true;
           for (let j = 0; j < this.barHeights.length - 1 - i; j++) {
             if (this.barHeights[j] > this.barHeights[j + 1]) {
-              isSorted = false;
+              alreadySorted = false;
               swap(this.barHeights, j, j + 1);
               clearCanvas(this.name);
               const h = new Map([[j, "#ff7f50"], [j + 1, "#ff7f50"]]);
@@ -270,7 +270,7 @@ for (let i = 0; i < algorithmsConfig.length; i++) {
   header.className = "card-header d-flex justify-content-between align-items-center";
   const title = document.createElement("h5");
   title.className = "mb-0";
-  title.textContent = formatAlgoName(algo.name);
+  title.textContent = getAlgoLongName(algo.name);
   const info = document.createElement("small");
   info.className = "text-muted";
   info.title = "Best/Avg/Worst: see docs";
