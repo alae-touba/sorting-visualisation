@@ -1,326 +1,448 @@
+// ---------------- Utilities ----------------
 function sleep(ms) {
-	return new Promise((resolve) => setTimeout(resolve, ms))
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-const divAlgosContainer = document.getElementById("algos-container")
-const divAlgosRow = document.getElementById("algos-row")
+// global, dynamic from slider (1..100) mapped to delay 2..120ms
+function currentDelay() {
+  const slider = document.getElementById("speedRange");
+  if (!slider) return 30;
+  // Invert the slider: higher = faster (smaller delay)
+  const v = Number(slider.value); // 1..100
+  const delay = Math.round(120 - (v - 1) * (118 / 99)); // ≈120..2
+  return delay;
+}
+
+// global density -> algorithm.step (min 3, max 30)
+function currentStep() {
+  const s = document.getElementById("densityRange");
+  return s ? Number(s.value) : 8;
+}
+
+// Disable / enable all controls of a card
+function setControlsDisabled(algoName, disabled) {
+  const card = document.querySelector(`[data-algo='${algoName}']`);
+  if (!card) return;
+  const controls = card.querySelectorAll("button");
+  controls.forEach((btn) => (btn.disabled = disabled));
+  card.classList.toggle("sorting-disabled", disabled);
+}
+
+// gradient color from value (0..1) -> hsl
+function valueToColor01(p) {
+  // hue 210 (blue) -> 20 (orange)
+  const hue = 210 - Math.round(p * 190);
+  return `hsl(${hue}, 80%, 50%)`;
+}
+
+// ---------------- Core ----------------
+const divAlgosRow = document.getElementById("algos-row");
 
 function clearCanvas(algoName) {
-	const canvas = document.getElementById("canvas " + algoName)
-	const ctx = canvas.getContext("2d")
-	ctx.clearRect(0, 0, canvas.width, canvas.height)
+  const canvas = document.getElementById(`canvas-${algoName}`);
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
+// drawing helpers
+function setCanvasSizeToParent(canvas) {
+  const parent = canvas.parentElement;
+  const rect = parent.getBoundingClientRect();
+  canvas.width = Math.max(300, Math.floor(rect.width - 2)); // avoid 0 width
+  canvas.height = Math.round(parseFloat(getComputedStyle(canvas).height));
+}
+
+function display(algoName, options = {}) {
+  const { highlight = new Map() } = options;
+  const canvas = document.getElementById(`canvas-${algoName}`);
+  const ctx = canvas.getContext("2d");
+  const algo = algorithms.find((a) => a.name === algoName);
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const maxH = canvas.height - 4;
+  const halfHeight = canvas.height / 2;
+  for (let x = 2, i = 0; x < canvas.width && i < algo.yTailArray.length; x += algo.step, i++) {
+    const y = algo.yTailArray[i];
+    const p = Math.min(1, Math.max(0, y / maxH));
+    const stroke = highlight.has(i) ? highlight.get(i) : valueToColor01(p);
+
+    ctx.beginPath();
+    ctx.moveTo(x, 2);
+    ctx.lineTo(x, y);
+    ctx.lineWidth = Math.max(1, algo.step / 4);
+    ctx.strokeStyle = stroke;
+    ctx.stroke();
+  }
+}
+
+// swapping with bounds check
 function swap(arr, i, j) {
-	if (i < 0 || i >= arr.length || j < 0 || j >= arr.length) {
-		throw new Error(`array out of bounds exception, length = ${arr.length} / i = ${j} / j = ${j}`)
-	}
-
-	const tmp = arr[i]
-	arr[i] = arr[j]
-	arr[j] = tmp
+  if (i < 0 || i >= arr.length || j < 0 || j >= arr.length) {
+    throw new Error(`array out of bounds: length=${arr.length} / i=${i} / j=${j}`);
+  }
+  const tmp = arr[i];
+  arr[i] = arr[j];
+  arr[j] = tmp;
 }
 
+// ---------------- Algorithms ----------------
 const algorithms = [
-	{
-		name: "shellSort",
-		step: 8,
-		yTailArray: [],
-		async sort() {
-			let gap = Math.floor(this.yTailArray.length / 2)
+  {
+    name: "shellSort",
+    step: 8,
+    yTailArray: [],
+    async sort() {
+      setControlsDisabled(this.name, true);
+      let gap = Math.floor(this.yTailArray.length / 2);
 
-			while (gap !== 0) {
-				let start = 0
-				let end = start + gap
+      while (gap !== 0) {
+        let start = 0;
+        let end = start + gap;
 
-				while (end < this.yTailArray.length) {
-					if (this.yTailArray[start] > this.yTailArray[end]) {
-						swap(this.yTailArray, start, end)
+        while (end < this.yTailArray.length) {
+          if (this.yTailArray[start] > this.yTailArray[end]) {
+            swap(this.yTailArray, start, end);
 
-						clearCanvas(this.name)
-						display(this.name, "#de512a")
-						await sleep(20)
+            clearCanvas(this.name);
+            const h = new Map([[start, "#ff7f50"], [end, "#ff7f50"]]);
+            display(this.name, { highlight: h });
+            await sleep(currentDelay());
 
-						let tmpStart = start
-						let previous = tmpStart - gap
-						while (previous > -1 && this.yTailArray[previous] > this.yTailArray[tmpStart]) {
-							swap(this.yTailArray, previous, tmpStart)
+            let tmpStart = start;
+            let previous = tmpStart - gap;
+            while (previous > -1 && this.yTailArray[previous] > this.yTailArray[tmpStart]) {
+              swap(this.yTailArray, previous, tmpStart);
 
-							clearCanvas(this.name)
-							display(this.name, "#de512a")
-							await sleep(30)
+              clearCanvas(this.name);
+              const hh = new Map([[previous, "#ff7f50"], [tmpStart, "#ff7f50"]]);
+              display(this.name, { highlight: hh });
+              await sleep(currentDelay());
 
-							tmpStart = previous
-							previous = previous - gap
-						}
-					}
-					start++
-					end++
-				}
-				gap = Math.floor(gap / 2)
-			}
-		}
-	},
-	{
-		name: "quickSort",
-		step: 8,
-		yTailArray: [],
-		async sort() {
-			await this.quickSortHelper(this.yTailArray, 0, this.yTailArray.length - 1)
-		},
-		async partition(arr, start, end) {
-			let pivot = arr[end]
+              tmpStart = previous;
+              previous = previous - gap;
+            }
+          }
+          start++;
+          end++;
+        }
+        gap = Math.floor(gap / 2);
+      }
+      setControlsDisabled(this.name, false);
+    },
+  },
+  {
+    name: "quickSort",
+    step: 8,
+    yTailArray: [],
+    async sort() {
+      setControlsDisabled(this.name, true);
+      await this.quickSortHelper(this.yTailArray, 0, this.yTailArray.length - 1);
+      setControlsDisabled(this.name, false);
+    },
+    async partition(arr, start, end) {
+      const pivot = arr[end];
+      let i = start - 1;
+      for (let j = start; j < end; j++) {
+        if (arr[j] < pivot) {
+          i++;
+          swap(arr, i, j);
+          clearCanvas(this.name);
+          const h = new Map([[i, "#ff7f50"], [j, "#ff7f50"], [end, "#ffd54f"]]); // pivot yellow
+          display(this.name, { highlight: h });
+          await sleep(currentDelay());
+        }
+      }
+      swap(arr, i + 1, end);
+      clearCanvas(this.name);
+      const h2 = new Map([[i + 1, "#ff7f50"], [end, "#ffd54f"]]);
+      display(this.name, { highlight: h2 });
+      await sleep(currentDelay());
+      return i + 1;
+    },
+    async quickSortHelper(arr, start, end) {
+      if (start < end) {
+        const idx = await this.partition(arr, start, end);
+        await this.quickSortHelper(arr, start, idx - 1);
+        await this.quickSortHelper(arr, idx + 1, end);
+      }
+    },
+  },
+  {
+    name: "bubbleSort",
+    step: 8,
+    yTailArray: [],
+    async sort() {
+      setControlsDisabled(this.name, true);
+      let isSorted = false;
+      for (let i = 0; i < this.yTailArray.length - 1; i++) {
+        if (!isSorted) {
+          isSorted = true;
+          for (let j = 0; j < this.yTailArray.length - 1 - i; j++) {
+            if (this.yTailArray[j] > this.yTailArray[j + 1]) {
+              isSorted = false;
+              swap(this.yTailArray, j, j + 1);
+              clearCanvas(this.name);
+              const h = new Map([[j, "#ff7f50"], [j + 1, "#ff7f50"]]);
+              display(this.name, { highlight: h });
+              await sleep(currentDelay());
+            }
+          }
+        }
+      }
+      setControlsDisabled(this.name, false);
+    },
+  },
+  {
+    name: "selectionSort",
+    step: 8,
+    yTailArray: [],
+    async sort() {
+      setControlsDisabled(this.name, true);
+      for (let i = 0; i < this.yTailArray.length - 1; i++) {
+        let indexMax = 0;
+        for (let j = 0; j < this.yTailArray.length - i; j++) {
+          if (this.yTailArray[j] > this.yTailArray[indexMax]) {
+            indexMax = j;
+          }
+        }
+        swap(this.yTailArray, indexMax, this.yTailArray.length - 1 - i);
+        clearCanvas(this.name);
+        const h = new Map([[indexMax, "#ff7f50"], [this.yTailArray.length - 1 - i, "#ff7f50"]]);
+        display(this.name, { highlight: h });
+        await sleep(currentDelay());
+      }
+      setControlsDisabled(this.name, false);
+    },
+  },
+  {
+    name: "insertionSort",
+    step: 8,
+    yTailArray: [],
+    async sort() {
+      setControlsDisabled(this.name, true);
+      for (let i = 1; i < this.yTailArray.length; i++) {
+        let k = i;
+        while (k > 0 && this.yTailArray[k] < this.yTailArray[k - 1]) {
+          swap(this.yTailArray, k, k - 1);
+          k--;
+          clearCanvas(this.name);
+          const h = new Map([[k, "#ff7f50"], [k + 1, "#ff7f50"]]);
+          display(this.name, { highlight: h });
+          await sleep(currentDelay());
+        }
+      }
+      setControlsDisabled(this.name, false);
+    },
+  },
+];
 
-			//index of smaller element
-			let i = start - 1
-
-			for (let j = start; j < end; j++) {
-				if (arr[j] < pivot) {
-					i++
-
-					swap(arr, i, j)
-
-					clearCanvas(this.name)
-					display(this.name, "#de512a")
-					await sleep(30)
-				}
-			}
-
-			swap(arr, i + 1, end)
-			//by now, all the elements on the right of the pivot are smaller than the pivot
-			//and all elements on the left of the pivot are greater than the pivot
-
-			clearCanvas(this.name)
-			display(this.name, "#de512a")
-			await sleep(30)
-
-			return i + 1
-		},
-
-		async quickSortHelper(arr, start, end) {
-			if (start < end) {
-				let indexPivot = await this.partition(arr, start, end)
-				this.quickSortHelper(arr, 0, indexPivot - 1)
-				this.quickSortHelper(arr, indexPivot + 1, end)
-			}
-		}
-	},
-	{
-		name: "bubbleSort",
-		step: 8,
-		yTailArray: [],
-		async sort() {
-			let isSorted = false
-			for (let i = 0; i < this.yTailArray.length - 1; i++) {
-				if (!isSorted) {
-					isSorted = true
-					for (let j = 0; j < this.yTailArray.length - 1 - i; j++) {
-						if (this.yTailArray[j] > this.yTailArray[j + 1]) {
-							isSorted = false
-							swap(this.yTailArray, j, j + 1)
-
-							clearCanvas(this.name)
-							display(this.name, "#de512a")
-							await sleep(30)
-						}
-					}
-				}
-			}
-		}
-	},
-	{
-		name: "selectionSort",
-		step: 8,
-		yTailArray: [],
-		async sort() {
-			for (let i = 0; i < this.yTailArray.length - 1; i++) {
-				let indexMax = 0
-				for (let j = 0; j < this.yTailArray.length - i; j++) {
-					if (this.yTailArray[j] > this.yTailArray[indexMax]) {
-						indexMax = j
-					}
-				}
-				swap(this.yTailArray, indexMax, this.yTailArray.length - 1 - i)
-
-				clearCanvas(this.name)
-				display(this.name, "#de512a")
-				await sleep(30)
-			}
-		}
-	},
-	{
-		name: "insertionSort",
-		step: 8,
-		yTailArray: [],
-		async sort() {
-			for (let i = 1; i < this.yTailArray.length; i++) {
-				let k = i
-				while (k > 0 && this.yTailArray[k] < this.yTailArray[k - 1]) {
-					swap(this.yTailArray, k, k - 1)
-					k--
-
-					clearCanvas(this.name)
-					display(this.name, "#de512a")
-					await sleep(30)
-				}
-			}
-		}
-	}
-]
-
-const yHead = 2
-
+// ---------------- Generation & Display ----------------
 function generateYTailArray(algoName) {
-	const canvas = document.getElementById("canvas " + algoName)
-	const algo = algorithms.find((a) => a.name === algoName)
+  const canvas = document.getElementById(`canvas-${algoName}`);
+  const algo = algorithms.find((a) => a.name === algoName);
 
-	algo.yTailArray = []
-
-	for (let x = 2; x < canvas.width; x += algo.step) {
-		const halfHeight = canvas.height / 2
-		algo.yTailArray.push(halfHeight + Math.floor(Math.random() * (halfHeight - 2)))
-	}
+  algo.yTailArray = [];
+  const step = algo.step;
+  for (let x = 2; x < canvas.width; x += step) {
+    const halfHeight = canvas.height / 2;
+    const val = halfHeight + Math.floor(Math.random() * (halfHeight - 2));
+    algo.yTailArray.push(val);
+  }
 }
 
-function display(algoName, color) {
-	const canvas = document.getElementById("canvas " + algoName)
-	const ctx = canvas.getContext("2d")
-
-	const algo = algorithms.find((a) => a.name === algoName)
-
-	ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-	for (let x = 2, i = 0; x < canvas.width && i < algo.yTailArray.length; x += algo.step, i++) {
-		ctx.beginPath()
-		ctx.moveTo(x, yHead)
-		ctx.lineTo(x, algo.yTailArray[i])
-		ctx.lineWidth = algo.step / 4
-		ctx.strokeStyle = color
-		ctx.stroke()
-	}
+function getAlgoLongName(algoName) {
+  // adds a space before 'Sort' and casing
+  const i = algoName.indexOf("Sort");
+  const pretty = algoName.substr(0, i) + " Sort";
+  return pretty.charAt(0).toUpperCase() + pretty.slice(1);
 }
 
-function getAlgoName(algoName) {
-	const i = algoName.indexOf("Sort")
-	return algoName.substr(0, i) + " sort"
-}
-
+// Build UI
 for (let i = 0; i < algorithms.length; i++) {
-	const div = document.createElement("div")
-	div.className = "col-md-5 mx-auto mt-3"
+  const algo = algorithms[i];
 
-	const canvas = document.createElement("canvas")
-	canvas.id = "canvas " + algorithms[i].name
-	canvas.textContent = "Your browser does not support the HTML5 canvas tag"
+  const col = document.createElement("div");
+  col.className = "col-lg-6 col-md-12 mb-4";
+  col.setAttribute("data-algo", algo.name);
 
-	const divContainerButtons = document.createElement("div")
-	divContainerButtons.className = "d-flex justify-content-center"
+  const card = document.createElement("div");
+  card.className = "card algo-card";
 
-	const buttonSort = document.createElement("button")
-	buttonSort.className = "btn btn-primary mr-2 sort " + algorithms[i].name
-	buttonSort.textContent = getAlgoName(algorithms[i].name)
+  const header = document.createElement("div");
+  header.className = "card-header d-flex justify-content-between align-items-center";
+  const title = document.createElement("h5");
+  title.className = "mb-0";
+  title.textContent = getAlgoLongName(algo.name);
+  const info = document.createElement("small");
+  info.className = "text-muted";
+  info.title = "Best/Avg/Worst: see docs";
+  header.appendChild(title);
+  header.appendChild(info);
 
-	const buttonRemoveLines = document.createElement("button")
-	buttonRemoveLines.className = "remove-lines " + algorithms[i].name
-	buttonRemoveLines.textContent = "<<"
-	// buttonRemoveLines.innerHTML = `<i class="fas fa-angle-double-left">`
+  const body = document.createElement("div");
+  body.className = "card-body";
 
-	const buttonAddLines = document.createElement("button")
-	buttonAddLines.className = "mr-2 add-lines " + algorithms[i].name
-	buttonAddLines.textContent = ">>"
-	// buttonAddLines.innerHTML = `<i class="fas fa-angle-double-right">`
+  const canvasWrap = document.createElement("div");
+  canvasWrap.className = "canvas-wrap mb-3";
 
-	const buttonNewArray = document.createElement("button")
-	buttonNewArray.className = "btn btn-primary mr-2 new-array " + algorithms[i].name
-	buttonNewArray.textContent = "new array"
+  const canvas = document.createElement("canvas");
+  canvas.id = `canvas-${algo.name}`;
+  canvas.textContent = "Your browser does not support the HTML5 canvas tag";
 
-	divContainerButtons.appendChild(buttonSort)
-	divContainerButtons.appendChild(buttonRemoveLines)
-	divContainerButtons.appendChild(buttonAddLines)
-	divContainerButtons.appendChild(buttonNewArray)
+  canvasWrap.appendChild(canvas);
 
-	div.appendChild(canvas)
-	div.appendChild(divContainerButtons)
+  const controls = document.createElement("div");
+  controls.className = "controls-row d-flex justify-content-center";
 
-	divAlgosRow.appendChild(div)
+  const buttonSort = document.createElement("button");
+  buttonSort.className = `btn btn-primary mr-2 sort ${algo.name}`;
+  buttonSort.textContent = "Sort";
 
-	generateYTailArray(algorithms[i].name)
-	display(algorithms[i].name, "#de512a")
+  const buttonRemoveLines = document.createElement("button");
+  buttonRemoveLines.className = `btn btn-outline-warning btn-icon remove-lines ${algo.name}`;
+  buttonRemoveLines.setAttribute("aria-label", "Fewer bars");
+  buttonRemoveLines.textContent = "–";
+
+  const buttonAddLines = document.createElement("button");
+  buttonAddLines.className = `btn btn-outline-warning btn-icon mr-2 add-lines ${algo.name}`;
+  buttonAddLines.setAttribute("aria-label", "More bars");
+  buttonAddLines.textContent = "+";
+
+  const buttonNewArray = document.createElement("button");
+  buttonNewArray.className = `btn btn-secondary new-array ${algo.name}`;
+  buttonNewArray.textContent = "New array";
+
+  const note = document.createElement("div");
+  note.className = "text-center mt-2 card-note";
+  note.textContent = "Use +/– to change density for this algorithm only.";
+
+  controls.appendChild(buttonSort);
+  controls.appendChild(buttonRemoveLines);
+  controls.appendChild(buttonAddLines);
+  controls.appendChild(buttonNewArray);
+
+  body.appendChild(canvasWrap);
+  body.appendChild(controls);
+  body.appendChild(note);
+
+  card.appendChild(header);
+  card.appendChild(body);
+  col.appendChild(card);
+  divAlgosRow.appendChild(col);
+
+  // initial sizing + data generation
+  setCanvasSizeToParent(canvas);
+  algo.step = currentStep();
+  generateYTailArray(algo.name);
+  display(algo.name);
 }
 
-const sortButtons = document.querySelectorAll(".sort")
+// resize handler
+let resizeTimer = null;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    algorithms.forEach((algo) => {
+      const canvas = document.getElementById(`canvas-${algo.name}`);
+      setCanvasSizeToParent(canvas);
+      generateYTailArray(algo.name);
+      display(algo.name);
+    });
+  }, 120);
+});
+
+// ---------------- Events ----------------
+const sortButtons = document.querySelectorAll(".sort");
 for (let i = 0; i < sortButtons.length; i++) {
-	sortButtons[i].addEventListener("click", async (e) => {
-		const classes = e.target.className.split(" ")
-		const algoName = classes[classes.length - 1]
-		// console.log(algoName)
-
-		const algo = algorithms.find((a) => a.name === algoName)
-		// console.log(algo)
-		// console.log(algo.yTailArray)
-		await algo.sort()
-	})
+  sortButtons[i].addEventListener("click", async (e) => {
+    const classes = e.target.className.split(" ");
+    const algoName = classes[classes.length - 1];
+    const algo = algorithms.find((a) => a.name === algoName);
+    await algo.sort();
+  });
 }
 
-const removeLinesButtons = document.querySelectorAll(".remove-lines")
+const removeLinesButtons = document.querySelectorAll(".remove-lines");
 for (let i = 0; i < removeLinesButtons.length; i++) {
-	removeLinesButtons[i].addEventListener("click", (e) => {
-		const classes = e.target.className.split(" ")
-		const algoName = classes[classes.length - 1]
-
-		const algo = algorithms.find((a) => a.name === algoName)
-
-		if (algo.step < 30) {
-			algo.step += 3
-			generateYTailArray(algoName)
-			display(algoName, "#de512a")
-		}
-	})
+  removeLinesButtons[i].addEventListener("click", (e) => {
+    const classes = e.target.className.split(" ");
+    const algoName = classes[classes.length - 1];
+    const algo = algorithms.find((a) => a.name === algoName);
+    if (algo.step < 30) {
+      algo.step += 1;
+      const canvas = document.getElementById(`canvas-${algoName}`);
+      setCanvasSizeToParent(canvas);
+      generateYTailArray(algoName);
+      display(algoName);
+    }
+  });
 }
 
-const addLinesButtons = document.querySelectorAll(".add-lines")
+const addLinesButtons = document.querySelectorAll(".add-lines");
 for (let i = 0; i < addLinesButtons.length; i++) {
-	addLinesButtons[i].addEventListener("click", (e) => {
-		const classes = e.target.className.split(" ")
-		const algoName = classes[classes.length - 1]
-
-		const algo = algorithms.find((a) => a.name === algoName)
-
-		if (algo.step > 3) {
-			algo.step -= 3
-			generateYTailArray(algoName)
-			display(algoName, "#de512a")
-		}
-	})
+  addLinesButtons[i].addEventListener("click", (e) => {
+    const classes = e.target.className.split(" ");
+    const algoName = classes[classes.length - 1];
+    const algo = algorithms.find((a) => a.name === algoName);
+    if (algo.step > 3) {
+      algo.step -= 1;
+      const canvas = document.getElementById(`canvas-${algoName}`);
+      setCanvasSizeToParent(canvas);
+      generateYTailArray(algoName);
+      display(algoName);
+    }
+  });
 }
 
-const newArrayButtons = document.querySelectorAll(".new-array")
+const newArrayButtons = document.querySelectorAll(".new-array");
 for (let i = 0; i < newArrayButtons.length; i++) {
-	newArrayButtons[i].addEventListener("click", (e) => {
-		const classes = e.target.className.split(" ")
-		const algoName = classes[classes.length - 1]
-
-		const algo = algorithms.find((a) => a.name === algoName)
-		algo.step = 8
-
-		generateYTailArray(algoName)
-		display(algoName, "#de512a")
-	})
+  newArrayButtons[i].addEventListener("click", (e) => {
+    const classes = e.target.className.split(" ");
+    const algoName = classes[classes.length - 1];
+    const algo = algorithms.find((a) => a.name === algoName);
+    algo.step = currentStep();
+    const canvas = document.getElementById(`canvas-${algoName}`);
+    setCanvasSizeToParent(canvas);
+    generateYTailArray(algoName);
+    display(algoName);
+  });
 }
 
-const buttonSortAll = document.getElementById("button-sort-all")
-const buttonResetAll = document.getElementById("button-reset-all")
+const buttonSortAll = document.getElementById("button-sort-all");
+const buttonResetAll = document.getElementById("button-reset-all");
 
-buttonSortAll.addEventListener("click", (e) => {
-	for (let i = 0; i < algorithms.length; i++) {
-		algorithms[i].sort()
-	}
-})
+buttonSortAll.addEventListener("click", async () => {
+  buttonSortAll.disabled = true;
+  buttonResetAll.disabled = true;
+  // disable each card
+  algorithms.forEach((a) => setControlsDisabled(a.name, true));
+  await Promise.all(algorithms.map((a) => a.sort()));
+  algorithms.forEach((a) => setControlsDisabled(a.name, false));
+  buttonSortAll.disabled = false;
+  buttonResetAll.disabled = false;
+});
 
-buttonResetAll.addEventListener("click", (e) => {
-	for (let i = 0; i < algorithms.length; i++) {
-		algorithms[i].step = 8
-		generateYTailArray(algorithms[i].name)
-		display(algorithms[i].name, "#de512a")
-	}
-})
+buttonResetAll.addEventListener("click", () => {
+  document.getElementById("speedRange").value = 40;
+  document.getElementById("densityRange").value = 8;
+  for (let i = 0; i < algorithms.length; i++) {
+    algorithms[i].step = currentStep();
+    const canvas = document.getElementById(`canvas-${algorithms[i].name}`);
+    setCanvasSizeToParent(canvas);
+    generateYTailArray(algorithms[i].name);
+    display(algorithms[i].name);
+  }
+});
+
+// global sliders
+document.getElementById("densityRange").addEventListener("input", (e) => {
+  const newStep = Number(e.target.value);
+  for (const algo of algorithms) {
+    algo.step = newStep;
+    generateYTailArray(algo.name);
+    display(algo.name);
+  }
+});
+
+// speedRange is read when needed via currentDelay()

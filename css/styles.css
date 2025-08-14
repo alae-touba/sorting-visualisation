@@ -1,17 +1,73 @@
-canvas {
-	background-color: #f0f0f0;
-	border: 1px solid #d3d3d3;
-	border-radius: 5px;
-	width: inherit;
+/* --------- Layout & base --------- */
+:root{
+  --canvas-height: 260px;
+  --bar-color: #de512a;
 }
+
+html, body {
+  min-height: 100%;
+}
+
 body {
-	margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
-.btn-color {
-	background-color: #03162c;
+/* allow small gaps without relying on modern gap in all places */
+.controls-inline > * + * { margin-left: .5rem; }
+
+/* --------- Cards --------- */
+.algo-card {
+  background: #2f4255;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.18);
+  overflow: hidden;
 }
 
-.btn-color:hover {
-	background-color: #010a13;
+.algo-card .card-header {
+  background: rgba(0,0,0,.12);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+.algo-card .card-body {
+  background: #2b3e50;
+}
+
+/* --------- Canvas --------- */
+.canvas-wrap {
+  position: relative;
+  width: 100%;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: var(--canvas-height);
+  background: linear-gradient(180deg, #f7f7f7, #ececec);
+  border: 1px solid #d8d8d8;
+  border-radius: 8px;
+  box-shadow: 0 8px 18px rgba(0,0,0,.12);
+}
+
+/* --------- Buttons --------- */
+.controls-row .btn + .btn {
+  margin-left: .5rem;
+}
+
+.btn-icon {
+  width: 40px;
+  padding: .375rem 0;
+}
+
+/* Disabled cursor while sorting */
+.sorting-disabled {
+  pointer-events: none;
+  opacity: .75;
+  filter: grayscale(.2);
+}
+
+/* Small note under cards */
+.card-note {
+  color: rgba(255,255,255,.65);
+  font-size: .85rem;
 }
