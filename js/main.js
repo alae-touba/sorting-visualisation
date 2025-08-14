@@ -13,8 +13,8 @@ function currentDelay() {
   return delay;
 }
 
-// global density -> algorithm.step (min 3, max 30)
-function currentStep() {
+// global density -> algorithm.barSpacing (min 3, max 30)
+function currentBarSpacing() {
   const s = document.getElementById("densityRange");
   return s ? Number(s.value) : 8;
 }
@@ -62,7 +62,7 @@ function renderBars(algoName, options = {}) {
 
   const maxH = canvas.height - 4;
   const halfHeight = canvas.height / 2;
-  for (let x = 2, i = 0; x < canvas.width && i < algo.barHeights.length; x += algo.step, i++) {
+  for (let x = 2, i = 0; x < canvas.width && i < algo.barHeights.length; x += algo.barSpacing, i++) {
     const y = algo.barHeights[i];
     const p = Math.min(1, Math.max(0, y / maxH));
     const stroke = highlight.has(i) ? highlight.get(i) : valueToColor01(p);
@@ -70,7 +70,7 @@ function renderBars(algoName, options = {}) {
     ctx.beginPath();
     ctx.moveTo(x, 2);
     ctx.lineTo(x, y);
-    ctx.lineWidth = Math.max(1, algo.step / 4);
+    ctx.lineWidth = Math.max(1, algo.barSpacing / 4);
     ctx.strokeStyle = stroke;
     ctx.stroke();
   }
@@ -90,7 +90,7 @@ function swap(arr, i, j) {
 const algorithms = [
   {
     name: "shellSort",
-    step: 8,
+    barSpacing: 8,
     barHeights: [],
     async sort() {
       toggleAlgorithmControls(this.name, true);
@@ -133,7 +133,7 @@ const algorithms = [
   },
   {
     name: "quickSort",
-    step: 8,
+    barSpacing: 8,
     barHeights: [],
     async sort() {
       toggleAlgorithmControls(this.name, true);
@@ -170,7 +170,7 @@ const algorithms = [
   },
   {
     name: "bubbleSort",
-    step: 8,
+    barSpacing: 8,
     barHeights: [],
     async sort() {
       (this.name, true);
@@ -195,7 +195,7 @@ const algorithms = [
   },
   {
     name: "selectionSort",
-    step: 8,
+    barSpacing: 8,
     barHeights: [],
     async sort() {
       toggleAlgorithmControls(this.name, true);
@@ -217,7 +217,7 @@ const algorithms = [
   },
   {
     name: "insertionSort",
-    step: 8,
+    barSpacing: 8,
     barHeights: [],
     async sort() {
       toggleAlgorithmControls(this.name, true);
@@ -243,8 +243,8 @@ function generateBarHeights(algoName) {
   const algo = algorithms.find((a) => a.name === algoName);
 
   algo.barHeights = [];
-  const step = algo.step;
-  for (let x = 2; x < canvas.width; x += step) {
+  const barSpacing = algo.barSpacing;
+  for (let x = 2; x < canvas.width; x += barSpacing) {
     const halfHeight = canvas.height / 2;
     const val = halfHeight + Math.floor(Math.random() * (halfHeight - 2));
     algo.barHeights.push(val);
@@ -333,7 +333,7 @@ for (let i = 0; i < algorithms.length; i++) {
 
   // initial sizing + data generation
   setCanvasSizeToParent(canvas);
-  algo.step = currentStep();
+  algo.barSpacing = currentBarSpacing();
   generateBarHeights(algo.name);
   renderBars(algo.name);
 }
@@ -369,8 +369,8 @@ for (let i = 0; i < removeLinesButtons.length; i++) {
     const classes = e.target.className.split(" ");
     const algoName = classes[classes.length - 1];
     const algo = algorithms.find((a) => a.name === algoName);
-    if (algo.step < 30) {
-      algo.step += 1;
+    if (algo.barSpacing < 30) {
+      algo.barSpacing += 1;
       const canvas = document.getElementById(`canvas-${algoName}`);
       setCanvasSizeToParent(canvas);
       generateBarHeights(algoName);
@@ -385,8 +385,8 @@ for (let i = 0; i < addLinesButtons.length; i++) {
     const classes = e.target.className.split(" ");
     const algoName = classes[classes.length - 1];
     const algo = algorithms.find((a) => a.name === algoName);
-    if (algo.step > 3) {
-      algo.step -= 1;
+    if (algo.barSpacing > 3) {
+      algo.barSpacing -= 1;
       const canvas = document.getElementById(`canvas-${algoName}`);
       setCanvasSizeToParent(canvas);
       generateBarHeights(algoName);
@@ -401,7 +401,7 @@ for (let i = 0; i < newArrayButtons.length; i++) {
     const classes = e.target.className.split(" ");
     const algoName = classes[classes.length - 1];
     const algo = algorithms.find((a) => a.name === algoName);
-    algo.step = currentStep();
+    algo.barSpacing = currentBarSpacing();
     const canvas = document.getElementById(`canvas-${algoName}`);
     setCanvasSizeToParent(canvas);
     generateBarHeights(algoName);
@@ -427,7 +427,7 @@ buttonResetAll.addEventListener("click", () => {
   document.getElementById("speedRange").value = 40;
   document.getElementById("densityRange").value = 8;
   for (let i = 0; i < algorithms.length; i++) {
-    algorithms[i].step = currentStep();
+    algorithms[i].barSpacing = currentBarSpacing();
     const canvas = document.getElementById(`canvas-${algorithms[i].name}`);
     setCanvasSizeToParent(canvas);
     generateBarHeights(algorithms[i].name);
@@ -437,9 +437,9 @@ buttonResetAll.addEventListener("click", () => {
 
 // global sliders
 document.getElementById("densityRange").addEventListener("input", (e) => {
-  const newStep = Number(e.target.value);
+  const newBarSpacing = Number(e.target.value);
   for (const algo of algorithms) {
-    algo.step = newStep;
+    algo.barSpacing = newBarSpacing;
     generateBarHeights(algo.name);
     renderBars(algo.name);
   }
