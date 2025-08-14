@@ -60,16 +60,15 @@ function renderBars(algoName, options = {}) {
 
   clearCanvas(algoName);
 
-  const maxH = canvas.height - 4;
-  const halfHeight = canvas.height / 2;
+  const maxHeight = canvas.height - 4;
   for (let x = 2, i = 0; x < canvas.width && i < algo.barHeights.length; x += algo.barSpacing, i++) {
-    const y = algo.barHeights[i];
-    const p = Math.min(1, Math.max(0, y / maxH));
+    const currBarHeight = algo.barHeights[i];
+    const p = Math.min(1, Math.max(0, currBarHeight / maxHeight));
     const stroke = highlight.has(i) ? highlight.get(i) : valueToColor01(p);
 
     ctx.beginPath();
     ctx.moveTo(x, 2);
-    ctx.lineTo(x, y);
+    ctx.lineTo(x, currBarHeight);
     ctx.lineWidth = Math.max(1, algo.barSpacing / 4);
     ctx.strokeStyle = stroke;
     ctx.stroke();
@@ -103,7 +102,6 @@ const algorithms = [
         while (end < this.barHeights.length) {
           if (this.barHeights[start] > this.barHeights[end]) {
             swap(this.barHeights, start, end);
-
             clearCanvas(this.name);
             const h = new Map([[start, "#ff7f50"], [end, "#ff7f50"]]);
             renderBars(this.name, { highlight: h });
