@@ -58,7 +58,7 @@ function renderBars(algoName, options = {}) {
   const ctx = canvas.getContext("2d");
   const algo = algorithms.find((a) => a.name === algoName);
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  clearCanvas(algoName);
 
   const maxH = canvas.height - 4;
   const halfHeight = canvas.height / 2;
