@@ -36,7 +36,7 @@ function valueToColor01(p) {
 }
 
 // ---------------- Core ----------------
-const divAlgosRow = document.getElementById("algos-row");
+const algoCardsContainer = document.getElementById("algo-cards-container");
 
 function clearCanvas(algoName) {
   const canvas = document.getElementById(`canvas-${algoName}`);
@@ -329,7 +329,7 @@ for (let i = 0; i < algorithms.length; i++) {
   card.appendChild(header);
   card.appendChild(body);
   col.appendChild(card);
-  divAlgosRow.appendChild(col);
+  algoCardsContainer.appendChild(col);
 
   // initial sizing + data generation
   setCanvasSizeToParent(canvas);
