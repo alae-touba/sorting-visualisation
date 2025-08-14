@@ -62,8 +62,8 @@ function display(algoName, options = {}) {
 
   const maxH = canvas.height - 4;
   const halfHeight = canvas.height / 2;
-  for (let x = 2, i = 0; x < canvas.width && i < algo.yTailArray.length; x += algo.step, i++) {
-    const y = algo.yTailArray[i];
+  for (let x = 2, i = 0; x < canvas.width && i < algo.barHeights.length; x += algo.step, i++) {
+    const y = algo.barHeights[i];
     const p = Math.min(1, Math.max(0, y / maxH));
     const stroke = highlight.has(i) ? highlight.get(i) : valueToColor01(p);
 
@@ -91,18 +91,18 @@ const algorithms = [
   {
     name: "shellSort",
     step: 8,
-    yTailArray: [],
+    barHeights: [],
     async sort() {
       setControlsDisabled(this.name, true);
-      let gap = Math.floor(this.yTailArray.length / 2);
+      let gap = Math.floor(this.barHeights.length / 2);
 
       while (gap !== 0) {
         let start = 0;
         let end = start + gap;
 
-        while (end < this.yTailArray.length) {
-          if (this.yTailArray[start] > this.yTailArray[end]) {
-            swap(this.yTailArray, start, end);
+        while (end < this.barHeights.length) {
+          if (this.barHeights[start] > this.barHeights[end]) {
+            swap(this.barHeights, start, end);
 
             clearCanvas(this.name);
             const h = new Map([[start, "#ff7f50"], [end, "#ff7f50"]]);
@@ -111,8 +111,8 @@ const algorithms = [
 
             let tmpStart = start;
             let previous = tmpStart - gap;
-            while (previous > -1 && this.yTailArray[previous] > this.yTailArray[tmpStart]) {
-              swap(this.yTailArray, previous, tmpStart);
+            while (previous > -1 && this.barHeights[previous] > this.barHeights[tmpStart]) {
+              swap(this.barHeights, previous, tmpStart);
 
               clearCanvas(this.name);
               const hh = new Map([[previous, "#ff7f50"], [tmpStart, "#ff7f50"]]);
@@ -134,10 +134,10 @@ const algorithms = [
   {
     name: "quickSort",
     step: 8,
-    yTailArray: [],
+    barHeights: [],
     async sort() {
       setControlsDisabled(this.name, true);
-      await this.quickSortHelper(this.yTailArray, 0, this.yTailArray.length - 1);
+      await this.quickSortHelper(this.barHeights, 0, this.barHeights.length - 1);
       setControlsDisabled(this.name, false);
     },
     async partition(arr, start, end) {
@@ -171,17 +171,17 @@ const algorithms = [
   {
     name: "bubbleSort",
     step: 8,
-    yTailArray: [],
+    barHeights: [],
     async sort() {
       setControlsDisabled(this.name, true);
       let isSorted = false;
-      for (let i = 0; i < this.yTailArray.length - 1; i++) {
+      for (let i = 0; i < this.barHeights.length - 1; i++) {
         if (!isSorted) {
           isSorted = true;
-          for (let j = 0; j < this.yTailArray.length - 1 - i; j++) {
-            if (this.yTailArray[j] > this.yTailArray[j + 1]) {
+          for (let j = 0; j < this.barHeights.length - 1 - i; j++) {
+            if (this.barHeights[j] > this.barHeights[j + 1]) {
               isSorted = false;
-              swap(this.yTailArray, j, j + 1);
+              swap(this.barHeights, j, j + 1);
               clearCanvas(this.name);
               const h = new Map([[j, "#ff7f50"], [j + 1, "#ff7f50"]]);
               display(this.name, { highlight: h });
@@ -196,19 +196,19 @@ const algorithms = [
   {
     name: "selectionSort",
     step: 8,
-    yTailArray: [],
+    barHeights: [],
     async sort() {
       setControlsDisabled(this.name, true);
-      for (let i = 0; i < this.yTailArray.length - 1; i++) {
+      for (let i = 0; i < this.barHeights.length - 1; i++) {
         let indexMax = 0;
-        for (let j = 0; j < this.yTailArray.length - i; j++) {
-          if (this.yTailArray[j] > this.yTailArray[indexMax]) {
+        for (let j = 0; j < this.barHeights.length - i; j++) {
+          if (this.barHeights[j] > this.barHeights[indexMax]) {
             indexMax = j;
           }
         }
-        swap(this.yTailArray, indexMax, this.yTailArray.length - 1 - i);
+        swap(this.barHeights, indexMax, this.barHeights.length - 1 - i);
         clearCanvas(this.name);
-        const h = new Map([[indexMax, "#ff7f50"], [this.yTailArray.length - 1 - i, "#ff7f50"]]);
+        const h = new Map([[indexMax, "#ff7f50"], [this.barHeights.length - 1 - i, "#ff7f50"]]);
         display(this.name, { highlight: h });
         await sleep(currentDelay());
       }
@@ -218,13 +218,13 @@ const algorithms = [
   {
     name: "insertionSort",
     step: 8,
-    yTailArray: [],
+    barHeights: [],
     async sort() {
       setControlsDisabled(this.name, true);
-      for (let i = 1; i < this.yTailArray.length; i++) {
+      for (let i = 1; i < this.barHeights.length; i++) {
         let k = i;
-        while (k > 0 && this.yTailArray[k] < this.yTailArray[k - 1]) {
-          swap(this.yTailArray, k, k - 1);
+        while (k > 0 && this.barHeights[k] < this.barHeights[k - 1]) {
+          swap(this.barHeights, k, k - 1);
           k--;
           clearCanvas(this.name);
           const h = new Map([[k, "#ff7f50"], [k + 1, "#ff7f50"]]);
@@ -238,16 +238,16 @@ const algorithms = [
 ];
 
 // ---------------- Generation & Display ----------------
-function generateYTailArray(algoName) {
+function generateBarHeights(algoName) {
   const canvas = document.getElementById(`canvas-${algoName}`);
   const algo = algorithms.find((a) => a.name === algoName);
 
-  algo.yTailArray = [];
+  algo.barHeights = [];
   const step = algo.step;
   for (let x = 2; x < canvas.width; x += step) {
     const halfHeight = canvas.height / 2;
     const val = halfHeight + Math.floor(Math.random() * (halfHeight - 2));
-    algo.yTailArray.push(val);
+    algo.barHeights.push(val);
   }
 }
 
@@ -334,7 +334,7 @@ for (let i = 0; i < algorithms.length; i++) {
   // initial sizing + data generation
   setCanvasSizeToParent(canvas);
   algo.step = currentStep();
-  generateYTailArray(algo.name);
+  generateBarHeights(algo.name);
   display(algo.name);
 }
 
@@ -346,7 +346,7 @@ window.addEventListener("resize", () => {
     algorithms.forEach((algo) => {
       const canvas = document.getElementById(`canvas-${algo.name}`);
       setCanvasSizeToParent(canvas);
-      generateYTailArray(algo.name);
+      generateBarHeights(algo.name);
       display(algo.name);
     });
   }, 120);
@@ -373,7 +373,7 @@ for (let i = 0; i < removeLinesButtons.length; i++) {
       algo.step += 1;
       const canvas = document.getElementById(`canvas-${algoName}`);
       setCanvasSizeToParent(canvas);
-      generateYTailArray(algoName);
+      generateBarHeights(algoName);
       display(algoName);
     }
   });
@@ -389,7 +389,7 @@ for (let i = 0; i < addLinesButtons.length; i++) {
       algo.step -= 1;
       const canvas = document.getElementById(`canvas-${algoName}`);
       setCanvasSizeToParent(canvas);
-      generateYTailArray(algoName);
+      generateBarHeights(algoName);
       display(algoName);
     }
   });
@@ -404,7 +404,7 @@ for (let i = 0; i < newArrayButtons.length; i++) {
     algo.step = currentStep();
     const canvas = document.getElementById(`canvas-${algoName}`);
     setCanvasSizeToParent(canvas);
-    generateYTailArray(algoName);
+    generateBarHeights(algoName);
     display(algoName);
   });
 }
@@ -430,7 +430,7 @@ buttonResetAll.addEventListener("click", () => {
     algorithms[i].step = currentStep();
     const canvas = document.getElementById(`canvas-${algorithms[i].name}`);
     setCanvasSizeToParent(canvas);
-    generateYTailArray(algorithms[i].name);
+    generateBarHeights(algorithms[i].name);
     display(algorithms[i].name);
   }
 });
@@ -440,7 +440,7 @@ document.getElementById("densityRange").addEventListener("input", (e) => {
   const newStep = Number(e.target.value);
   for (const algo of algorithms) {
     algo.step = newStep;
-    generateYTailArray(algo.name);
+    generateBarHeights(algo.name);
     display(algo.name);
   }
 });
