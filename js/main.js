@@ -28,13 +28,6 @@ function toggleAlgorithmControls(algoName, isDisabled) {
   card.classList.toggle("sorting-disabled", isDisabled);
 }
 
-// gradient color from value (0..1) -> hsl
-function valueToColor01(p) {
-  // hue 210 (blue) -> 20 (orange)
-  const hue = 210 - Math.round(p * 190);
-  return `hsl(${hue}, 80%, 50%)`;
-}
-
 // ---------------- Core ----------------
 const algoCardsContainer = document.getElementById("algo-cards-container");
 
@@ -52,8 +45,7 @@ function setCanvasSizeToParent(canvas) {
   canvas.height = Math.round(parseFloat(getComputedStyle(canvas).height));
 }
 
-function renderBars(algoName, options = {}) {
-  const { highlight = new Map() } = options;
+function renderBars(algoName) {
   const canvas = document.getElementById(`canvas-${algoName}`);
   const ctx = canvas.getContext("2d");
   const algo = algorithmsConfig.find((a) => a.name === algoName);
@@ -63,14 +55,12 @@ function renderBars(algoName, options = {}) {
   const maxHeight = canvas.height - 4;
   for (let x = 2, i = 0; x < canvas.width && i < algo.barHeights.length; x += algo.barSpacing, i++) {
     const currBarHeight = algo.barHeights[i];
-    const p = Math.min(1, Math.max(0, currBarHeight / maxHeight));
-    const stroke = highlight.has(i) ? highlight.get(i) : valueToColor01(p);
 
     ctx.beginPath();
     ctx.moveTo(x, 2);
     ctx.lineTo(x, currBarHeight);
     ctx.lineWidth = Math.max(1, algo.barSpacing / 4);
-    ctx.strokeStyle = stroke;
+    ctx.strokeStyle = "#000000"; // Black color for all bars
     ctx.stroke();
   }
 }
@@ -104,7 +94,7 @@ const algorithmsConfig = [
             swap(this.barHeights, start, end);
             clearCanvas(this.name);
             const h = new Map([[start, "#ff7f50"], [end, "#ff7f50"]]);
-            renderBars(this.name, { highlight: h });
+            renderBars(this.name);
             await sleep(currentDelay());
 
             let tmpStart = start;
@@ -114,7 +104,7 @@ const algorithmsConfig = [
 
               clearCanvas(this.name);
               const hh = new Map([[previous, "#ff7f50"], [tmpStart, "#ff7f50"]]);
-              renderBars(this.name, { highlight: hh });
+              renderBars(this.name);
               await sleep(currentDelay());
 
               tmpStart = previous;
@@ -147,14 +137,14 @@ const algorithmsConfig = [
           swap(arr, i, j);
           clearCanvas(this.name);
           const h = new Map([[i, "#ff7f50"], [j, "#ff7f50"], [end, "#ffd54f"]]); // pivot yellow
-          renderBars(this.name, { highlight: h });
+          renderBars(this.name);
           await sleep(currentDelay());
         }
       }
       swap(arr, i + 1, end);
       clearCanvas(this.name);
       const h2 = new Map([[i + 1, "#ff7f50"], [end, "#ffd54f"]]);
-      renderBars(this.name, { highlight: h2 });
+      renderBars(this.name);
       await sleep(currentDelay());
       return i + 1;
     },
@@ -182,7 +172,7 @@ const algorithmsConfig = [
               swap(this.barHeights, j, j + 1);
               clearCanvas(this.name);
               const h = new Map([[j, "#ff7f50"], [j + 1, "#ff7f50"]]);
-              renderBars(this.name, { highlight: h });
+              renderBars(this.name);
               await sleep(currentDelay());
             }
           }
@@ -207,7 +197,7 @@ const algorithmsConfig = [
         swap(this.barHeights, indexMax, this.barHeights.length - 1 - i);
         clearCanvas(this.name);
         const h = new Map([[indexMax, "#ff7f50"], [this.barHeights.length - 1 - i, "#ff7f50"]]);
-        renderBars(this.name, { highlight: h });
+        renderBars(this.name);
         await sleep(currentDelay());
       }
       toggleAlgorithmControls(this.name, false);
@@ -226,7 +216,7 @@ const algorithmsConfig = [
           k--;
           clearCanvas(this.name);
           const h = new Map([[k, "#ff7f50"], [k + 1, "#ff7f50"]]);
-          renderBars(this.name, { highlight: h });
+          renderBars(this.name);
           await sleep(currentDelay());
         }
       }
@@ -270,7 +260,7 @@ for (let i = 0; i < algorithmsConfig.length; i++) {
   header.className = "card-header d-flex justify-content-between align-items-center";
   const title = document.createElement("h5");
   title.className = "mb-0";
-  title.textContent = getAlgoLongName(algo.name);
+  title.textContent = formatAlgoName(algo.name);
   const info = document.createElement("small");
   info.className = "text-muted";
   info.title = "Best/Avg/Worst: see docs";
