@@ -20,12 +20,12 @@ function currentStep() {
 }
 
 // Disable / enable all controls of a card
-function setControlsDisabled(algoName, disabled) {
+function toggleAlgorithmControls(algoName, isDisabled) {
   const card = document.querySelector(`[data-algo='${algoName}']`);
   if (!card) return;
   const controls = card.querySelectorAll("button");
-  controls.forEach((btn) => (btn.disabled = disabled));
-  card.classList.toggle("sorting-disabled", disabled);
+  controls.forEach((btn) => (btn.disabled = isDisabled));
+  card.classList.toggle("sorting-disabled", isDisabled);
 }
 
 // gradient color from value (0..1) -> hsl
@@ -93,7 +93,7 @@ const algorithms = [
     step: 8,
     barHeights: [],
     async sort() {
-      setControlsDisabled(this.name, true);
+      toggleAlgorithmControls(this.name, true);
       let gap = Math.floor(this.barHeights.length / 2);
 
       while (gap !== 0) {
@@ -128,7 +128,7 @@ const algorithms = [
         }
         gap = Math.floor(gap / 2);
       }
-      setControlsDisabled(this.name, false);
+      toggleAlgorithmControls(this.name, false);
     },
   },
   {
@@ -136,9 +136,9 @@ const algorithms = [
     step: 8,
     barHeights: [],
     async sort() {
-      setControlsDisabled(this.name, true);
+      toggleAlgorithmControls(this.name, true);
       await this.quickSortHelper(this.barHeights, 0, this.barHeights.length - 1);
-      setControlsDisabled(this.name, false);
+      toggleAlgorithmControls(this.name, false);
     },
     async partition(arr, start, end) {
       const pivot = arr[end];
@@ -173,7 +173,7 @@ const algorithms = [
     step: 8,
     barHeights: [],
     async sort() {
-      setControlsDisabled(this.name, true);
+      (this.name, true);
       let isSorted = false;
       for (let i = 0; i < this.barHeights.length - 1; i++) {
         if (!isSorted) {
@@ -190,7 +190,7 @@ const algorithms = [
           }
         }
       }
-      setControlsDisabled(this.name, false);
+      toggleAlgorithmControls(this.name, false);
     },
   },
   {
@@ -198,7 +198,7 @@ const algorithms = [
     step: 8,
     barHeights: [],
     async sort() {
-      setControlsDisabled(this.name, true);
+      toggleAlgorithmControls(this.name, true);
       for (let i = 0; i < this.barHeights.length - 1; i++) {
         let indexMax = 0;
         for (let j = 0; j < this.barHeights.length - i; j++) {
@@ -212,7 +212,7 @@ const algorithms = [
         display(this.name, { highlight: h });
         await sleep(currentDelay());
       }
-      setControlsDisabled(this.name, false);
+      toggleAlgorithmControls(this.name, false);
     },
   },
   {
@@ -220,7 +220,7 @@ const algorithms = [
     step: 8,
     barHeights: [],
     async sort() {
-      setControlsDisabled(this.name, true);
+      toggleAlgorithmControls(this.name, true);
       for (let i = 1; i < this.barHeights.length; i++) {
         let k = i;
         while (k > 0 && this.barHeights[k] < this.barHeights[k - 1]) {
@@ -232,7 +232,7 @@ const algorithms = [
           await sleep(currentDelay());
         }
       }
-      setControlsDisabled(this.name, false);
+      toggleAlgorithmControls(this.name, false);
     },
   },
 ];
@@ -416,9 +416,9 @@ buttonSortAll.addEventListener("click", async () => {
   buttonSortAll.disabled = true;
   buttonResetAll.disabled = true;
   // disable each card
-  algorithms.forEach((a) => setControlsDisabled(a.name, true));
+  algorithms.forEach((a) => toggleAlgorithmControls(a.name, true));
   await Promise.all(algorithms.map((a) => a.sort()));
-  algorithms.forEach((a) => setControlsDisabled(a.name, false));
+  algorithms.forEach((a) => toggleAlgorithmControls(a.name, false));
   buttonSortAll.disabled = false;
   buttonResetAll.disabled = false;
 });
