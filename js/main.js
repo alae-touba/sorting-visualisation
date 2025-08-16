@@ -290,19 +290,19 @@ for (let i = 0; i < algorithmsConfig.length; i++) {
   buttonDecreaseBars.setAttribute("aria-label", "Decrease bars (increases spacing)");
   buttonDecreaseBars.textContent = "Fewer bars";
 
-  const buttonNewArray = document.createElement("button");
-  buttonNewArray.className = `btn btn-secondary new-array`;
-  buttonNewArray.setAttribute("data-algo-name", algo.name);
-  buttonNewArray.textContent = "New array";
+  const buttonGenerateNewBars = document.createElement("button");
+  buttonGenerateNewBars.className = `btn btn-secondary generate-new-bars`;
+  buttonGenerateNewBars.setAttribute("data-algo-name", algo.name);
+  buttonGenerateNewBars.textContent = "Generate New Bars";
 
   const note = document.createElement("div");
   note.className = "text-center mt-2 card-note";
-  note.textContent = "Adjust bar density: 'More bars' or 'Fewer bars'";
+  note.textContent = "Adjust bar density or generate new bars";
 
   controls.appendChild(buttonSort);
   controls.appendChild(buttonIncreaseBars);
   controls.appendChild(buttonDecreaseBars);
-  controls.appendChild(buttonNewArray);
+  controls.appendChild(buttonGenerateNewBars);
 
   body.appendChild(canvasWrap);
   body.appendChild(controls);
@@ -374,9 +374,9 @@ for (let i = 0; i < decreaseBarsButtons.length; i++) {
   });
 }
 
-const newArrayButtons = document.querySelectorAll(".new-array");
-for (let i = 0; i < newArrayButtons.length; i++) {
-  newArrayButtons[i].addEventListener("click", (e) => {
+const generateNewBarsButtons = document.querySelectorAll(".generate-new-bars");
+for (let i = 0; i < generateNewBarsButtons.length; i++) {
+  generateNewBarsButtons[i].addEventListener("click", (e) => {
     const algoName = e.currentTarget.dataset.algoName;
     const algo = algorithmsConfig.find((a) => a.name === algoName);
     algo.barSpacing = currentBarSpacing();
