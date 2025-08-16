@@ -57,7 +57,7 @@ function refresh(algoName) {
 function renderBars(algoName) {
   const canvas = document.getElementById(`canvas-${algoName}`);
   const ctx = canvas.getContext("2d");
-  const algo = algorithmsConfig.find((a) => a.name === algoName);
+  const algo = algorithmsConfigByName.get(algoName);
 
   clearCanvas(algoName);
 
@@ -225,10 +225,13 @@ const algorithmsConfig = [
   },
 ];
 
+// Create a Map for O(1) lookup of algorithms by name
+const algorithmsConfigByName = new Map(algorithmsConfig.map(a => [a.name, a]));
+
 // ---------------- Generation & Display ----------------
 function generateBarHeights(algoName) {
   const canvas = document.getElementById(`canvas-${algoName}`);
-  const algo = algorithmsConfig.find((a) => a.name === algoName);
+  const algo = algorithmsConfigByName.get(algoName);
 
   algo.barHeights = [];
   const barSpacing = algo.barSpacing;
@@ -342,7 +345,7 @@ const sortButtons = document.querySelectorAll(".sort");
 for (let i = 0; i < sortButtons.length; i++) {
   sortButtons[i].addEventListener("click", async (e) => {
     const algoName = e.currentTarget.dataset.algoName;
-    const algo = algorithmsConfig.find((a) => a.name === algoName);
+    const algo = algorithmsConfigByName.get(algoName);
     await algo.sort();
   });
 }
@@ -351,7 +354,7 @@ const increaseBarsButtons = document.querySelectorAll(".increase-bars");
 for (let i = 0; i < increaseBarsButtons.length; i++) {
   increaseBarsButtons[i].addEventListener("click", (e) => {
     const algoName = e.currentTarget.dataset.algoName;
-    const algo = algorithmsConfig.find((a) => a.name === algoName);
+    const algo = algorithmsConfigByName.get(algoName);
     if (algo.barSpacing > 3) {  // Decrease spacing to show more bars
       algo.barSpacing -= 1;
       refresh(algoName);
@@ -363,7 +366,7 @@ const decreaseBarsButtons = document.querySelectorAll(".decrease-bars");
 for (let i = 0; i < decreaseBarsButtons.length; i++) {
   decreaseBarsButtons[i].addEventListener("click", (e) => {
     const algoName = e.currentTarget.dataset.algoName;
-    const algo = algorithmsConfig.find((a) => a.name === algoName);
+    const algo = algorithmsConfigByName.get(algoName);
     if (algo.barSpacing < 30) {  // Increase spacing to show fewer bars
       algo.barSpacing += 1;
       refresh(algoName);
@@ -375,7 +378,7 @@ const generateNewBarsButtons = document.querySelectorAll(".generate-new-bars");
 for (let i = 0; i < generateNewBarsButtons.length; i++) {
   generateNewBarsButtons[i].addEventListener("click", (e) => {
     const algoName = e.currentTarget.dataset.algoName;
-    const algo = algorithmsConfig.find((a) => a.name === algoName);
+    const algo = algorithmsConfigByName.get(algoName);
     algo.barSpacing = currentBarSpacing();
     refresh(algoName);
   });
