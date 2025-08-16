@@ -52,10 +52,8 @@ function renderBars(algoName) {
 
   clearCanvas(algoName);
 
-  const maxHeight = canvas.height - 4;
   for (let x = 2, i = 0; x < canvas.width && i < algo.barHeights.length; x += algo.barSpacing, i++) {
     const currBarHeight = algo.barHeights[i];
-
     ctx.beginPath();
     ctx.moveTo(x, 2);
     ctx.lineTo(x, currBarHeight);
@@ -276,21 +274,25 @@ for (let i = 0; i < algorithmsConfig.length; i++) {
   controls.className = "controls-row d-flex justify-content-center";
 
   const buttonSort = document.createElement("button");
-  buttonSort.className = `btn btn-primary mr-2 sort ${algo.name}`;
+  buttonSort.className = `btn btn-primary mr-2 sort`;
+  buttonSort.setAttribute("data-algo-name", algo.name);
   buttonSort.textContent = "Sort";
 
   const buttonRemoveLines = document.createElement("button");
-  buttonRemoveLines.className = `btn btn-outline-warning btn-icon remove-lines ${algo.name}`;
+  buttonRemoveLines.className = `btn btn-outline-warning btn-icon remove-lines`;
+  buttonRemoveLines.setAttribute("data-algo-name", algo.name);
   buttonRemoveLines.setAttribute("aria-label", "Fewer bars");
   buttonRemoveLines.textContent = "–";
 
   const buttonAddLines = document.createElement("button");
-  buttonAddLines.className = `btn btn-outline-warning btn-icon mr-2 add-lines ${algo.name}`;
+  buttonAddLines.className = `btn btn-outline-warning btn-icon mr-2 add-lines`;
+  buttonAddLines.setAttribute("data-algo-name", algo.name);
   buttonAddLines.setAttribute("aria-label", "More bars");
   buttonAddLines.textContent = "+";
 
   const buttonNewArray = document.createElement("button");
-  buttonNewArray.className = `btn btn-secondary new-array ${algo.name}`;
+  buttonNewArray.className = `btn btn-secondary new-array`;
+  buttonNewArray.setAttribute("data-algo-name", algo.name);
   buttonNewArray.textContent = "New array";
 
   const note = document.createElement("div");
@@ -336,8 +338,7 @@ window.addEventListener("resize", () => {
 const sortButtons = document.querySelectorAll(".sort");
 for (let i = 0; i < sortButtons.length; i++) {
   sortButtons[i].addEventListener("click", async (e) => {
-    const classes = e.target.className.split(" ");
-    const algoName = classes[classes.length - 1];
+    const algoName = e.currentTarget.dataset.algoName;
     const algo = algorithmsConfig.find((a) => a.name === algoName);
     await algo.sort();
   });
@@ -346,8 +347,7 @@ for (let i = 0; i < sortButtons.length; i++) {
 const removeLinesButtons = document.querySelectorAll(".remove-lines");
 for (let i = 0; i < removeLinesButtons.length; i++) {
   removeLinesButtons[i].addEventListener("click", (e) => {
-    const classes = e.target.className.split(" ");
-    const algoName = classes[classes.length - 1];
+    const algoName = e.currentTarget.dataset.algoName;
     const algo = algorithmsConfig.find((a) => a.name === algoName);
     if (algo.barSpacing < 30) {
       algo.barSpacing += 1;
@@ -362,8 +362,7 @@ for (let i = 0; i < removeLinesButtons.length; i++) {
 const addLinesButtons = document.querySelectorAll(".add-lines");
 for (let i = 0; i < addLinesButtons.length; i++) {
   addLinesButtons[i].addEventListener("click", (e) => {
-    const classes = e.target.className.split(" ");
-    const algoName = classes[classes.length - 1];
+    const algoName = e.currentTarget.dataset.algoName;
     const algo = algorithmsConfig.find((a) => a.name === algoName);
     if (algo.barSpacing > 3) {
       algo.barSpacing -= 1;
@@ -378,8 +377,7 @@ for (let i = 0; i < addLinesButtons.length; i++) {
 const newArrayButtons = document.querySelectorAll(".new-array");
 for (let i = 0; i < newArrayButtons.length; i++) {
   newArrayButtons[i].addEventListener("click", (e) => {
-    const classes = e.target.className.split(" ");
-    const algoName = classes[classes.length - 1];
+    const algoName = e.currentTarget.dataset.algoName;
     const algo = algorithmsConfig.find((a) => a.name === algoName);
     algo.barSpacing = currentBarSpacing();
     const canvas = document.getElementById(`canvas-${algoName}`);
