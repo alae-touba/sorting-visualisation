@@ -278,17 +278,17 @@ for (let i = 0; i < algorithmsConfig.length; i++) {
   buttonSort.setAttribute("data-algo-name", algo.name);
   buttonSort.textContent = "Sort";
 
-  const buttonRemoveLines = document.createElement("button");
-  buttonRemoveLines.className = `btn btn-outline-warning btn-icon remove-lines`;
-  buttonRemoveLines.setAttribute("data-algo-name", algo.name);
-  buttonRemoveLines.setAttribute("aria-label", "Fewer bars");
-  buttonRemoveLines.textContent = "–";
+  const buttonIncreaseBars = document.createElement("button");
+  buttonIncreaseBars.className = `btn btn-outline-warning btn-icon increase-bars`;
+  buttonIncreaseBars.setAttribute("data-algo-name", algo.name);
+  buttonIncreaseBars.setAttribute("aria-label", "Increase bars (decreases spacing)");
+  buttonIncreaseBars.textContent = "More bars";
 
-  const buttonAddLines = document.createElement("button");
-  buttonAddLines.className = `btn btn-outline-warning btn-icon mr-2 add-lines`;
-  buttonAddLines.setAttribute("data-algo-name", algo.name);
-  buttonAddLines.setAttribute("aria-label", "More bars");
-  buttonAddLines.textContent = "+";
+  const buttonDecreaseBars = document.createElement("button");
+  buttonDecreaseBars.className = `btn btn-outline-warning btn-icon mr-2 decrease-bars`;
+  buttonDecreaseBars.setAttribute("data-algo-name", algo.name);
+  buttonDecreaseBars.setAttribute("aria-label", "Decrease bars (increases spacing)");
+  buttonDecreaseBars.textContent = "Fewer bars";
 
   const buttonNewArray = document.createElement("button");
   buttonNewArray.className = `btn btn-secondary new-array`;
@@ -297,11 +297,11 @@ for (let i = 0; i < algorithmsConfig.length; i++) {
 
   const note = document.createElement("div");
   note.className = "text-center mt-2 card-note";
-  note.textContent = "Use +/– to change density for this algorithm only.";
+  note.textContent = "Adjust bar density: 'More bars' or 'Fewer bars'";
 
   controls.appendChild(buttonSort);
-  controls.appendChild(buttonRemoveLines);
-  controls.appendChild(buttonAddLines);
+  controls.appendChild(buttonIncreaseBars);
+  controls.appendChild(buttonDecreaseBars);
   controls.appendChild(buttonNewArray);
 
   body.appendChild(canvasWrap);
@@ -344,13 +344,13 @@ for (let i = 0; i < sortButtons.length; i++) {
   });
 }
 
-const removeLinesButtons = document.querySelectorAll(".remove-lines");
-for (let i = 0; i < removeLinesButtons.length; i++) {
-  removeLinesButtons[i].addEventListener("click", (e) => {
+const increaseBarsButtons = document.querySelectorAll(".increase-bars");
+for (let i = 0; i < increaseBarsButtons.length; i++) {
+  increaseBarsButtons[i].addEventListener("click", (e) => {
     const algoName = e.currentTarget.dataset.algoName;
     const algo = algorithmsConfig.find((a) => a.name === algoName);
-    if (algo.barSpacing < 30) {
-      algo.barSpacing += 1;
+    if (algo.barSpacing > 3) {  // Decrease spacing to show more bars
+      algo.barSpacing -= 1;
       const canvas = document.getElementById(`canvas-${algoName}`);
       setCanvasSizeToParent(canvas);
       generateBarHeights(algoName);
@@ -359,13 +359,13 @@ for (let i = 0; i < removeLinesButtons.length; i++) {
   });
 }
 
-const addLinesButtons = document.querySelectorAll(".add-lines");
-for (let i = 0; i < addLinesButtons.length; i++) {
-  addLinesButtons[i].addEventListener("click", (e) => {
+const decreaseBarsButtons = document.querySelectorAll(".decrease-bars");
+for (let i = 0; i < decreaseBarsButtons.length; i++) {
+  decreaseBarsButtons[i].addEventListener("click", (e) => {
     const algoName = e.currentTarget.dataset.algoName;
     const algo = algorithmsConfig.find((a) => a.name === algoName);
-    if (algo.barSpacing > 3) {
-      algo.barSpacing -= 1;
+    if (algo.barSpacing < 30) {  // Increase spacing to show fewer bars
+      algo.barSpacing += 1;
       const canvas = document.getElementById(`canvas-${algoName}`);
       setCanvasSizeToParent(canvas);
       generateBarHeights(algoName);
