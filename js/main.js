@@ -93,7 +93,6 @@ const algorithmsConfig = [
           if (this.barHeights[start] > this.barHeights[end]) {
             swap(this.barHeights, start, end);
             clearCanvas(this.name);
-            const h = new Map([[start, "#ff7f50"], [end, "#ff7f50"]]);
             renderBars(this.name);
             await sleep(currentDelay());
 
@@ -103,7 +102,6 @@ const algorithmsConfig = [
               swap(this.barHeights, previous, tmpStart);
 
               clearCanvas(this.name);
-              const hh = new Map([[previous, "#ff7f50"], [tmpStart, "#ff7f50"]]);
               renderBars(this.name);
               await sleep(currentDelay());
 
@@ -136,14 +134,12 @@ const algorithmsConfig = [
           i++;
           swap(arr, i, j);
           clearCanvas(this.name);
-        //   const h = new Map([[i, "#ff7f50"], [j, "#ff7f50"], [end, "#ffd54f"]]);
           renderBars(this.name);
           await sleep(currentDelay());
         }
       }
       swap(arr, i + 1, end);
       clearCanvas(this.name);
-      const h2 = new Map([[i + 1, "#ff7f50"], [end, "#ffd54f"]]);
       renderBars(this.name);
       await sleep(currentDelay());
       return i + 1;
@@ -171,7 +167,6 @@ const algorithmsConfig = [
               alreadySorted = false;
               swap(this.barHeights, j, j + 1);
               clearCanvas(this.name);
-              const h = new Map([[j, "#ff7f50"], [j + 1, "#ff7f50"]]);
               renderBars(this.name);
               await sleep(currentDelay());
             }
@@ -196,7 +191,6 @@ const algorithmsConfig = [
         }
         swap(this.barHeights, indexMax, this.barHeights.length - 1 - i);
         clearCanvas(this.name);
-        const h = new Map([[indexMax, "#ff7f50"], [this.barHeights.length - 1 - i, "#ff7f50"]]);
         renderBars(this.name);
         await sleep(currentDelay());
       }
@@ -215,7 +209,6 @@ const algorithmsConfig = [
           swap(this.barHeights, k, k - 1);
           k--;
           clearCanvas(this.name);
-          const h = new Map([[k, "#ff7f50"], [k + 1, "#ff7f50"]]);
           renderBars(this.name);
           await sleep(currentDelay());
         }
