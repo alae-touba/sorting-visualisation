@@ -136,7 +136,7 @@ const algorithmsConfig = [
           i++;
           swap(arr, i, j);
           clearCanvas(this.name);
-          const h = new Map([[i, "#ff7f50"], [j, "#ff7f50"], [end, "#ffd54f"]]); // pivot yellow
+        //   const h = new Map([[i, "#ff7f50"], [j, "#ff7f50"], [end, "#ffd54f"]]);
           renderBars(this.name);
           await sleep(currentDelay());
         }
