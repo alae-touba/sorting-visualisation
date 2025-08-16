@@ -240,8 +240,7 @@ function generateBarHeights(algoName) {
 }
 
 function formatAlgoName(algoName) {
-  const i = algoName.indexOf("Sort");
-  const pretty = algoName.substr(0, i) + " Sort";
+  const pretty = algoName.replace(/([a-z])([A-Z])/g, "$1 $2"); // quickSort -> quick Sort
   return pretty.charAt(0).toUpperCase() + pretty.slice(1);
 }
 
