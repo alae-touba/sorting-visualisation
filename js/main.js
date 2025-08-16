@@ -37,12 +37,21 @@ function clearCanvas(algoName) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-// drawing helpers
+// Set canvas dimensions to match its parent container for responsive design.
+// This ensures the canvas properly resizes when the window or container changes size.
 function setCanvasSizeToParent(canvas) {
   const parent = canvas.parentElement;
   const rect = parent.getBoundingClientRect();
   canvas.width = Math.max(300, Math.floor(rect.width - 2)); // avoid 0 width
   canvas.height = Math.round(parseFloat(getComputedStyle(canvas).height));
+}
+
+// Refresh the visualization for an algorithm by updating canvas size, regenerating bar heights, and redrawing
+function refresh(algoName) {
+  const canvas = document.getElementById(`canvas-${algoName}`);
+  setCanvasSizeToParent(canvas);
+  generateBarHeights(algoName);
+  renderBars(algoName);
 }
 
 function renderBars(algoName) {
@@ -314,10 +323,8 @@ for (let i = 0; i < algorithmsConfig.length; i++) {
   algoCardsContainer.appendChild(col);
 
   // initial sizing + data generation
-  setCanvasSizeToParent(canvas);
   algo.barSpacing = currentBarSpacing();
-  generateBarHeights(algo.name);
-  renderBars(algo.name);
+  refresh(algo.name);
 }
 
 // resize handler
@@ -326,10 +333,7 @@ window.addEventListener("resize", () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
     algorithmsConfig.forEach((algo) => {
-      const canvas = document.getElementById(`canvas-${algo.name}`);
-      setCanvasSizeToParent(canvas);
-      generateBarHeights(algo.name);
-      renderBars(algo.name);
+      refresh(algo.name);
     });
   }, 120);
 });
@@ -351,10 +355,7 @@ for (let i = 0; i < increaseBarsButtons.length; i++) {
     const algo = algorithmsConfig.find((a) => a.name === algoName);
     if (algo.barSpacing > 3) {  // Decrease spacing to show more bars
       algo.barSpacing -= 1;
-      const canvas = document.getElementById(`canvas-${algoName}`);
-      setCanvasSizeToParent(canvas);
-      generateBarHeights(algoName);
-      renderBars(algoName);
+      refresh(algoName);
     }
   });
 }
@@ -366,10 +367,7 @@ for (let i = 0; i < decreaseBarsButtons.length; i++) {
     const algo = algorithmsConfig.find((a) => a.name === algoName);
     if (algo.barSpacing < 30) {  // Increase spacing to show fewer bars
       algo.barSpacing += 1;
-      const canvas = document.getElementById(`canvas-${algoName}`);
-      setCanvasSizeToParent(canvas);
-      generateBarHeights(algoName);
-      renderBars(algoName);
+      refresh(algoName);
     }
   });
 }
@@ -380,10 +378,7 @@ for (let i = 0; i < generateNewBarsButtons.length; i++) {
     const algoName = e.currentTarget.dataset.algoName;
     const algo = algorithmsConfig.find((a) => a.name === algoName);
     algo.barSpacing = currentBarSpacing();
-    const canvas = document.getElementById(`canvas-${algoName}`);
-    setCanvasSizeToParent(canvas);
-    generateBarHeights(algoName);
-    renderBars(algoName);
+    refresh(algoName);
   });
 }
 
@@ -406,10 +401,7 @@ buttonResetAll.addEventListener("click", () => {
   document.getElementById("densityRange").value = 8;
   for (let i = 0; i < algorithmsConfig.length; i++) {
     algorithmsConfig[i].barSpacing = currentBarSpacing();
-    const canvas = document.getElementById(`canvas-${algorithmsConfig[i].name}`);
-    setCanvasSizeToParent(canvas);
-    generateBarHeights(algorithmsConfig[i].name);
-    renderBars(algorithmsConfig[i].name);
+    refresh(algorithmsConfig[i].name);
   }
 });
 
@@ -418,9 +410,7 @@ document.getElementById("densityRange").addEventListener("input", (e) => {
   const newBarSpacing = Number(e.target.value);
   for (const algo of algorithmsConfig) {
     algo.barSpacing = newBarSpacing;
-    generateBarHeights(algo.name);
-    renderBars(algo.name);
+    refresh(algo.name);
   }
 });
 
-// speedRange is read when needed via currentDelay()
