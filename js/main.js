@@ -126,11 +126,9 @@ function renderBars(algoName) {
 // swapping with bounds check
 function swap(arr, i, j) {
   if (i < 0 || i >= arr.length || j < 0 || j >= arr.length) {
-    throw new Error(`array out of bounds: length=${arr.length} / i=${i} / j=${j}`);
+    throw new Error(`Array out of bounds: length=${arr.length}, i=${i}, j=${j}`);
   }
-  const tmp = arr[i];
-  arr[i] = arr[j];
-  arr[j] = tmp;
+  [arr[i], arr[j]] = [arr[j], arr[i]];
 }
 
 // ============ ALGORITHMS ============
