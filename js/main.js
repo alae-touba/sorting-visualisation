@@ -1,22 +1,73 @@
-// ---------------- Utilities ----------------
+// ============ CONFIGURATION CONSTANTS ============
+const CONFIG = {
+  // Speed slider configuration
+  SPEED: {
+    MIN: 1,
+    MAX: 100,
+    DEFAULT: 40,
+    DELAY_MIN: 20,        // Fastest delay in ms
+    DELAY_MAX: 120       // Slowest delay in ms
+  },
+  
+  // Bar density configuration
+  DENSITY: {
+    MIN: 3,              // Minimum bar spacing (most dense)
+    MAX: 30,             // Maximum bar spacing (least dense)
+    DEFAULT: 8           // Default bar spacing
+  },
+  
+  // Canvas configuration
+  CANVAS: {
+    MIN_WIDTH: 300,      // Minimum canvas width
+    PADDING: 2,          // Starting X position for bars
+    RESIZE_DEBOUNCE: 120 // Debounce delay for resize events in ms
+  },
+  
+  // Visual styling
+  COLORS: {
+    BAR: "#000000"       // Color for all bars
+  },
+  
+  // Bar generation
+  BAR: {
+    MIN_LINE_WIDTH: 1,   // Minimum stroke width for bars
+    LINE_WIDTH_DIVISOR: 4 // Divisor for calculating line width from spacing
+  },
+  
+  // Element IDs (to avoid magic strings)
+  ELEMENTS: {
+    SPEED_SLIDER: "speedRange",
+    DENSITY_SLIDER: "densityRange", 
+    ALGO_CONTAINER: "algo-cards-container",
+    SORT_ALL_BTN: "button-sort-all",
+    RESET_ALL_BTN: "button-reset-all"
+  }
+};
+
+// ============ UTILITIES ============
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // global, dynamic from slider (1..100) mapped to delay 2..120ms
 function currentDelay() {
-  const slider = document.getElementById("speedRange");
-  if (!slider) return 30;
-  // Invert the slider: higher = faster (smaller delay)
-  const v = Number(slider.value); // 1..100
-  const delay = Math.round(120 - (v - 1) * (118 / 99)); // ≈120..2
-  return delay;
+  const slider = document.getElementById(CONFIG.ELEMENTS.SPEED_SLIDER);
+  if (!slider) return 50; // reasonable default
+  
+  const sliderValue = Number(slider.value); // 1..100
+  
+  // Map slider 1-100 to delay 120-20
+  // When slider = 1 (slowest), delay = 120ms
+  // When slider = 100 (fastest), delay = 20ms
+  const delay = CONFIG.SPEED.DELAY_MAX - sliderValue + CONFIG.SPEED.DELAY_MIN;
+  
+  return Math.max(CONFIG.SPEED.DELAY_MIN, delay);
 }
 
 // global density -> algorithm.barSpacing (min 3, max 30)
 function currentBarSpacing() {
-  const s = document.getElementById("densityRange");
-  return s ? Number(s.value) : 8;
+  const slider = document.getElementById(CONFIG.ELEMENTS.DENSITY_SLIDER);
+  return slider ? Number(slider.value) : CONFIG.DENSITY.DEFAULT;
 }
 
 // Disable / enable all controls of a card
@@ -28,8 +79,8 @@ function toggleAlgorithmControls(algoName, isDisabled) {
   card.classList.toggle("sorting-disabled", isDisabled);
 }
 
-// ---------------- Core ----------------
-const algoCardsContainer = document.getElementById("algo-cards-container");
+// ============ CORE ============
+const algoCardsContainer = document.getElementById(CONFIG.ELEMENTS.ALGO_CONTAINER);
 
 function clearCanvas(algoName) {
   const canvas = document.getElementById(`canvas-${algoName}`);
@@ -42,7 +93,7 @@ function clearCanvas(algoName) {
 function setCanvasSizeToParent(canvas) {
   const parent = canvas.parentElement;
   const rect = parent.getBoundingClientRect();
-  canvas.width = Math.max(300, Math.floor(rect.width - 2)); // avoid 0 width
+  canvas.width = Math.max(CONFIG.CANVAS.MIN_WIDTH, Math.floor(rect.width - 2)); // avoid 0 width
   canvas.height = Math.round(parseFloat(getComputedStyle(canvas).height));
 }
 
@@ -61,13 +112,13 @@ function renderBars(algoName) {
 
   clearCanvas(algoName);
 
-  for (let x = 2, i = 0; x < canvas.width && i < algo.barHeights.length; x += algo.barSpacing, i++) {
+  for (let x = CONFIG.CANVAS.PADDING, i = 0; x < canvas.width && i < algo.barHeights.length; x += algo.barSpacing, i++) {
     const currBarHeight = algo.barHeights[i];
     ctx.beginPath();
-    ctx.moveTo(x, 2);
+    ctx.moveTo(x, CONFIG.CANVAS.PADDING);
     ctx.lineTo(x, currBarHeight);
-    ctx.lineWidth = Math.max(1, algo.barSpacing / 4);
-    ctx.strokeStyle = "#000000"; // Black color for all bars
+    ctx.lineWidth = Math.max(CONFIG.BAR.MIN_LINE_WIDTH, algo.barSpacing / CONFIG.BAR.LINE_WIDTH_DIVISOR);
+    ctx.strokeStyle = CONFIG.COLORS.BAR;
     ctx.stroke();
   }
 }
@@ -82,11 +133,11 @@ function swap(arr, i, j) {
   arr[j] = tmp;
 }
 
-// ---------------- Algorithms ----------------
+// ============ ALGORITHMS ============
 const algorithmsConfig = [
   {
     name: "shellSort",
-    barSpacing: 8,
+    barSpacing: CONFIG.DENSITY.DEFAULT,
     barHeights: [],
     async sort() {
       toggleAlgorithmControls(this.name, true);
@@ -126,7 +177,7 @@ const algorithmsConfig = [
   },
   {
     name: "quickSort",
-    barSpacing: 8,
+    barSpacing: CONFIG.DENSITY.DEFAULT,
     barHeights: [],
     async sort() {
       toggleAlgorithmControls(this.name, true);
@@ -161,7 +212,7 @@ const algorithmsConfig = [
   },
   {
     name: "bubbleSort",
-    barSpacing: 8,
+    barSpacing: CONFIG.DENSITY.DEFAULT,
     barHeights: [],
     async sort() {
       toggleAlgorithmControls(this.name, true);
@@ -185,7 +236,7 @@ const algorithmsConfig = [
   },
   {
     name: "selectionSort",
-    barSpacing: 8,
+    barSpacing: CONFIG.DENSITY.DEFAULT,
     barHeights: [],
     async sort() {
       toggleAlgorithmControls(this.name, true);
@@ -206,7 +257,7 @@ const algorithmsConfig = [
   },
   {
     name: "insertionSort",
-    barSpacing: 8,
+    barSpacing: CONFIG.DENSITY.DEFAULT,
     barHeights: [],
     async sort() {
       toggleAlgorithmControls(this.name, true);
@@ -228,16 +279,16 @@ const algorithmsConfig = [
 // Create a Map for O(1) lookup of algorithms by name
 const algorithmsConfigByName = new Map(algorithmsConfig.map(a => [a.name, a]));
 
-// ---------------- Generation & Display ----------------
+// ============ GENERATION & DISPLAY ============
 function generateBarHeights(algoName) {
   const canvas = document.getElementById(`canvas-${algoName}`);
   const algo = algorithmsConfigByName.get(algoName);
 
   algo.barHeights = [];
   const barSpacing = algo.barSpacing;
-  for (let x = 2; x < canvas.width; x += barSpacing) {
+  for (let x = CONFIG.CANVAS.PADDING; x < canvas.width; x += barSpacing) {
     const halfHeight = canvas.height / 2;
-    const val = halfHeight + Math.floor(Math.random() * (halfHeight - 2));
+    const val = halfHeight + Math.floor(Math.random() * (halfHeight - CONFIG.CANVAS.PADDING));
     algo.barHeights.push(val);
   }
 }
@@ -247,7 +298,7 @@ function formatAlgoName(algoName) {
   return pretty.charAt(0).toUpperCase() + pretty.slice(1);
 }
 
-// Build UI
+// ============ BUILD UI ============
 for (let i = 0; i < algorithmsConfig.length; i++) {
   const algo = algorithmsConfig[i];
 
@@ -337,10 +388,10 @@ window.addEventListener("resize", () => {
     algorithmsConfig.forEach((algo) => {
       refresh(algo.name);
     });
-  }, 120);
+  }, CONFIG.CANVAS.RESIZE_DEBOUNCE);
 });
 
-// ---------------- Events ----------------
+// ============ EVENTS ============
 const sortButtons = document.querySelectorAll(".sort");
 for (let i = 0; i < sortButtons.length; i++) {
   sortButtons[i].addEventListener("click", async (e) => {
@@ -355,7 +406,7 @@ for (let i = 0; i < increaseBarsButtons.length; i++) {
   increaseBarsButtons[i].addEventListener("click", (e) => {
     const algoName = e.currentTarget.dataset.algoName;
     const algo = algorithmsConfigByName.get(algoName);
-    if (algo.barSpacing > 3) {  // Decrease spacing to show more bars
+    if (algo.barSpacing > CONFIG.DENSITY.MIN) {  // Decrease spacing to show more bars
       algo.barSpacing -= 1;
       refresh(algoName);
     }
@@ -367,7 +418,7 @@ for (let i = 0; i < decreaseBarsButtons.length; i++) {
   decreaseBarsButtons[i].addEventListener("click", (e) => {
     const algoName = e.currentTarget.dataset.algoName;
     const algo = algorithmsConfigByName.get(algoName);
-    if (algo.barSpacing < 30) {  // Increase spacing to show fewer bars
+    if (algo.barSpacing < CONFIG.DENSITY.MAX) {  // Increase spacing to show fewer bars
       algo.barSpacing += 1;
       refresh(algoName);
     }
@@ -384,8 +435,8 @@ for (let i = 0; i < generateNewBarsButtons.length; i++) {
   });
 }
 
-const buttonSortAll = document.getElementById("button-sort-all");
-const buttonResetAll = document.getElementById("button-reset-all");
+const buttonSortAll = document.getElementById(CONFIG.ELEMENTS.SORT_ALL_BTN);
+const buttonResetAll = document.getElementById(CONFIG.ELEMENTS.RESET_ALL_BTN);
 
 buttonSortAll.addEventListener("click", async () => {
   buttonSortAll.disabled = true;
@@ -399,8 +450,8 @@ buttonSortAll.addEventListener("click", async () => {
 });
 
 buttonResetAll.addEventListener("click", () => {
-  document.getElementById("speedRange").value = 40;
-  document.getElementById("densityRange").value = 8;
+  document.getElementById(CONFIG.ELEMENTS.SPEED_SLIDER).value = CONFIG.SPEED.DEFAULT;
+  document.getElementById(CONFIG.ELEMENTS.DENSITY_SLIDER).value = CONFIG.DENSITY.DEFAULT;
   for (let i = 0; i < algorithmsConfig.length; i++) {
     algorithmsConfig[i].barSpacing = currentBarSpacing();
     refresh(algorithmsConfig[i].name);
@@ -408,11 +459,10 @@ buttonResetAll.addEventListener("click", () => {
 });
 
 // global sliders
-document.getElementById("densityRange").addEventListener("input", (e) => {
+document.getElementById(CONFIG.ELEMENTS.DENSITY_SLIDER).addEventListener("input", (e) => {
   const newBarSpacing = Number(e.target.value);
   for (const algo of algorithmsConfig) {
     algo.barSpacing = newBarSpacing;
     refresh(algo.name);
   }
 });
-
