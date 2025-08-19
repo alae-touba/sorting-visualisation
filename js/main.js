@@ -84,6 +84,7 @@ const algoCardsContainer = document.getElementById(CONFIG.ELEMENTS.ALGO_CONTAINE
 
 function clearCanvas(algoName) {
   const canvas = document.getElementById(`canvas-${algoName}`);
+    if (!canvas) return;
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
@@ -91,6 +92,7 @@ function clearCanvas(algoName) {
 // Set canvas dimensions to match its parent container for responsive design.
 // This ensures the canvas properly resizes when the window or container changes size.
 function setCanvasSizeToParent(canvas) {
+  if (!canvas || !canvas.parentElement) return;
   const parent = canvas.parentElement;
   const rect = parent.getBoundingClientRect();
   canvas.width = Math.max(CONFIG.CANVAS.MIN_WIDTH, Math.floor(rect.width - 2)); // avoid 0 width
@@ -100,6 +102,7 @@ function setCanvasSizeToParent(canvas) {
 // Refresh the visualization for an algorithm by updating canvas size, regenerating bar heights, and redrawing
 function refresh(algoName) {
   const canvas = document.getElementById(`canvas-${algoName}`);
+  if (!canvas) return;
   setCanvasSizeToParent(canvas);
   generateBarHeights(algoName);
   renderBars(algoName);
@@ -107,8 +110,9 @@ function refresh(algoName) {
 
 function renderBars(algoName) {
   const canvas = document.getElementById(`canvas-${algoName}`);
-  const ctx = canvas.getContext("2d");
   const algo = algorithmsConfigByName.get(algoName);
+  if (!canvas || !algo) return;
+  const ctx = canvas.getContext("2d");
 
   clearCanvas(algoName);
 
@@ -281,6 +285,7 @@ const algorithmsConfigByName = new Map(algorithmsConfig.map(a => [a.name, a]));
 function generateBarHeights(algoName) {
   const canvas = document.getElementById(`canvas-${algoName}`);
   const algo = algorithmsConfigByName.get(algoName);
+  if (!canvas || !algo) return;
 
   algo.barHeights = [];
   const barSpacing = algo.barSpacing;
@@ -296,87 +301,40 @@ function formatAlgoName(algoName) {
   return pretty.charAt(0).toUpperCase() + pretty.slice(1);
 }
 
-// ============ BUILD UI ============
-for (let i = 0; i < algorithmsConfig.length; i++) {
-  const algo = algorithmsConfig[i];
-
-  const col = document.createElement("div");
-  col.className = "col-lg-6 col-md-12 mb-4";
-  col.setAttribute("data-algo", algo.name);
-
-  const card = document.createElement("div");
-  card.className = "card algo-card";
-
-  const header = document.createElement("div");
-  header.className = "card-header d-flex justify-content-between align-items-center";
-  const title = document.createElement("h5");
-  title.className = "mb-0";
-  title.textContent = formatAlgoName(algo.name);
-  const info = document.createElement("small");
-  info.className = "text-muted";
-  info.title = "Best/Avg/Worst: see docs";
-  header.appendChild(title);
-  header.appendChild(info);
-
-  const body = document.createElement("div");
-  body.className = "card-body";
-
-  const canvasWrap = document.createElement("div");
-  canvasWrap.className = "canvas-wrap mb-3";
-
-  const canvas = document.createElement("canvas");
-  canvas.id = `canvas-${algo.name}`;
-  canvas.textContent = "Your browser does not support the HTML5 canvas tag";
-
-  canvasWrap.appendChild(canvas);
-
-  const controls = document.createElement("div");
-  controls.className = "controls-row d-flex justify-content-center";
-
-  const buttonSort = document.createElement("button");
-  buttonSort.className = `btn btn-primary mr-2 sort`;
-  buttonSort.setAttribute("data-algo-name", algo.name);
-  buttonSort.textContent = "Sort";
-
-  const buttonIncreaseBars = document.createElement("button");
-  buttonIncreaseBars.className = `btn btn-outline-warning btn-icon increase-bars`;
-  buttonIncreaseBars.setAttribute("data-algo-name", algo.name);
-  buttonIncreaseBars.setAttribute("aria-label", "Increase bars (decreases spacing)");
-  buttonIncreaseBars.textContent = "More bars";
-
-  const buttonDecreaseBars = document.createElement("button");
-  buttonDecreaseBars.className = `btn btn-outline-warning btn-icon mr-2 decrease-bars`;
-  buttonDecreaseBars.setAttribute("data-algo-name", algo.name);
-  buttonDecreaseBars.setAttribute("aria-label", "Decrease bars (increases spacing)");
-  buttonDecreaseBars.textContent = "Fewer bars";
-
-  const buttonGenerateNewBars = document.createElement("button");
-  buttonGenerateNewBars.className = `btn btn-secondary generate-new-bars`;
-  buttonGenerateNewBars.setAttribute("data-algo-name", algo.name);
-  buttonGenerateNewBars.textContent = "Generate New Bars";
-
-  const note = document.createElement("div");
-  note.className = "text-center mt-2 card-note";
-  note.textContent = "Adjust bar density or generate new bars";
-
-  controls.appendChild(buttonSort);
-  controls.appendChild(buttonIncreaseBars);
-  controls.appendChild(buttonDecreaseBars);
-  controls.appendChild(buttonGenerateNewBars);
-
-  body.appendChild(canvasWrap);
-  body.appendChild(controls);
-  body.appendChild(note);
-
-  card.appendChild(header);
-  card.appendChild(body);
-  col.appendChild(card);
-  algoCardsContainer.appendChild(col);
-
-  // initial sizing + data generation
-  algo.barSpacing = currentBarSpacing();
-  refresh(algo.name);
+// ============ TEMPLATED UI ============
+function createAlgorithmCard(algo) {
+  return `
+    <div class="col-lg-6 col-md-12 mb-4" data-algo="${algo.name}">
+      <div class="card algo-card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">${formatAlgoName(algo.name)}</h5>
+          <small class="text-muted" title="Best/Avg/Worst: see docs"></small>
+        </div>
+        <div class="card-body">
+          <div class="canvas-wrap mb-3">
+            <canvas id="canvas-${algo.name}">Your browser does not support the HTML5 canvas tag</canvas>
+          </div>
+          <div class="controls-row d-flex justify-content-center">
+            <button class="btn btn-primary mr-2 sort" data-algo-name="${algo.name}">Sort</button>
+            <button class="btn btn-outline-warning btn-icon increase-bars" data-algo-name="${algo.name}" aria-label="Increase bars (decreases spacing)">More bars</button>
+            <button class="btn btn-outline-warning btn-icon mr-2 decrease-bars" data-algo-name="${algo.name}" aria-label="Decrease bars (increases spacing)">Fewer bars</button>
+            <button class="btn btn-secondary generate-new-bars" data-algo-name="${algo.name}">Generate New Bars</button>
+          </div>
+          <div class="text-center mt-2 card-note">Adjust bar density or generate new bars</div>
+        </div>
+      </div>
+    </div>
+  `;
 }
+
+// Build once, then init after layout is ready
+algoCardsContainer.innerHTML = algorithmsConfig.map(createAlgorithmCard).join("");
+requestAnimationFrame(() => {
+  algorithmsConfig.forEach((algo) => {
+    algo.barSpacing = currentBarSpacing();
+    refresh(algo.name);
+  });
+});
 
 // resize handler
 let resizeTimer = null;
@@ -439,12 +397,14 @@ const buttonResetAll = document.getElementById(CONFIG.ELEMENTS.RESET_ALL_BTN);
 buttonSortAll.addEventListener("click", async () => {
   buttonSortAll.disabled = true;
   buttonResetAll.disabled = true;
-  // disable each card
   algorithmsConfig.forEach((a) => toggleAlgorithmControls(a.name, true));
-  await Promise.all(algorithmsConfig.map((a) => a.sort()));
-  algorithmsConfig.forEach((a) => toggleAlgorithmControls(a.name, false));
-  buttonSortAll.disabled = false;
-  buttonResetAll.disabled = false;
+  try {
+    await Promise.all(algorithmsConfig.map((a) => a.sort()));
+  } finally {
+    algorithmsConfig.forEach((a) => toggleAlgorithmControls(a.name, false));
+    buttonSortAll.disabled = false;
+    buttonResetAll.disabled = false;
+  }
 });
 
 buttonResetAll.addEventListener("click", () => {
