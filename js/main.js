@@ -2,9 +2,8 @@
 const CONFIG = {
   // Speed slider configuration
   SPEED: {
-    MIN: 1,
-    MAX: 100,
-    DEFAULT: 40,
+    SLIDER_DEFAULT: 40,   // Default slider position
+    DEFAULT_DELAY_MS: 80, // Delay corresponding to default slider position
     DELAY_MIN: 20,        // Fastest delay in ms
     DELAY_MAX: 120       // Slowest delay in ms
   },
@@ -52,14 +51,12 @@ function sleep(ms) {
 // global, dynamic from slider (1..100) mapped to delay 2..120ms
 function currentDelay() {
   const slider = document.getElementById(CONFIG.ELEMENTS.SPEED_SLIDER);
-  if (!slider) return 50; // reasonable default
-  
-  const sliderValue = Number(slider.value); // 1..100
-  
-  // Map slider 1-100 to delay 120-20
-  // When slider = 1 (slowest), delay = 120ms
-  // When slider = 100 (fastest), delay = 20ms
-  const delay = CONFIG.SPEED.DELAY_MAX - sliderValue + CONFIG.SPEED.DELAY_MIN;
+  if (!slider) 
+    return CONFIG.SPEED.DEFAULT_DELAY_MS; // Fallback to default delay if slider is missing
+
+  const sliderValue = Number(slider.value);
+
+  const delay = CONFIG.SPEED.DELAY_MAX - sliderValue;
   
   return Math.max(CONFIG.SPEED.DELAY_MIN, delay);
 }
@@ -408,7 +405,7 @@ buttonSortAll.addEventListener("click", async () => {
 });
 
 buttonResetAll.addEventListener("click", () => {
-  document.getElementById(CONFIG.ELEMENTS.SPEED_SLIDER).value = CONFIG.SPEED.DEFAULT;
+  document.getElementById(CONFIG.ELEMENTS.SPEED_SLIDER).value = CONFIG.SPEED.SLIDER_DEFAULT;
   document.getElementById(CONFIG.ELEMENTS.DENSITY_SLIDER).value = CONFIG.DENSITY.DEFAULT;
   for (let i = 0; i < algorithmsConfig.length; i++) {
     algorithmsConfig[i].barSpacing = currentBarSpacing();
