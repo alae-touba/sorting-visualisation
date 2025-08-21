@@ -325,6 +325,33 @@ requestAnimationFrame(() => {
   });
 });
 
+// Use event delegation for handling clicks on algorithm card buttons
+algoCardsContainer.addEventListener("click", async (e) => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+
+  const algoName = btn.dataset.algoName;
+  const algo = algorithmsConfigByName.get(algoName);
+  if (!algo) return;
+
+  if (btn.classList.contains("sort")) {
+    await algo.sort();
+  } else if (btn.classList.contains("increase-bars")) {
+    if (algo.barSpacing > CONFIG.DENSITY.MIN) {
+      algo.barSpacing -= 1;
+      refresh(algoName);
+    }
+  } else if (btn.classList.contains("decrease-bars")) {
+    if (algo.barSpacing < CONFIG.DENSITY.MAX) {
+      algo.barSpacing += 1;
+      refresh(algoName);
+    }
+  } else if (btn.classList.contains("generate-new-bars")) {
+    algo.barSpacing = currentBarSpacing();
+    refresh(algoName);
+  }
+});
+
 // resize handler
 let resizeTimer = null;
 window.addEventListener("resize", () => {
@@ -337,48 +364,6 @@ window.addEventListener("resize", () => {
 });
 
 // ============ EVENTS ============
-const sortButtons = document.querySelectorAll(".sort");
-for (let i = 0; i < sortButtons.length; i++) {
-  sortButtons[i].addEventListener("click", async (e) => {
-    const algoName = e.currentTarget.dataset.algoName;
-    const algo = algorithmsConfigByName.get(algoName);
-    await algo.sort();
-  });
-}
-
-const increaseBarsButtons = document.querySelectorAll(".increase-bars");
-for (let i = 0; i < increaseBarsButtons.length; i++) {
-  increaseBarsButtons[i].addEventListener("click", (e) => {
-    const algoName = e.currentTarget.dataset.algoName;
-    const algo = algorithmsConfigByName.get(algoName);
-    if (algo.barSpacing > CONFIG.DENSITY.MIN) {  // Decrease spacing to show more bars
-      algo.barSpacing -= 1;
-      refresh(algoName);
-    }
-  });
-}
-
-const decreaseBarsButtons = document.querySelectorAll(".decrease-bars");
-for (let i = 0; i < decreaseBarsButtons.length; i++) {
-  decreaseBarsButtons[i].addEventListener("click", (e) => {
-    const algoName = e.currentTarget.dataset.algoName;
-    const algo = algorithmsConfigByName.get(algoName);
-    if (algo.barSpacing < CONFIG.DENSITY.MAX) {  // Increase spacing to show fewer bars
-      algo.barSpacing += 1;
-      refresh(algoName);
-    }
-  });
-}
-
-const generateNewBarsButtons = document.querySelectorAll(".generate-new-bars");
-for (let i = 0; i < generateNewBarsButtons.length; i++) {
-  generateNewBarsButtons[i].addEventListener("click", (e) => {
-    const algoName = e.currentTarget.dataset.algoName;
-    const algo = algorithmsConfigByName.get(algoName);
-    algo.barSpacing = currentBarSpacing();
-    refresh(algoName);
-  });
-}
 
 const buttonSortAll = document.getElementById(CONFIG.ELEMENTS.SORT_ALL_BTN);
 const buttonResetAll = document.getElementById(CONFIG.ELEMENTS.RESET_ALL_BTN);
