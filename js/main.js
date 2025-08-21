@@ -52,7 +52,7 @@ function sleep(ms) {
 function currentDelay() {
   const slider = document.getElementById(CONFIG.ELEMENTS.SPEED_SLIDER);
   if (!slider) 
-    return CONFIG.SPEED.DEFAULT_DELAY_MS; // Fallback to default delay if slider is missing
+    return CONFIG.SPEED.DEFAULT_DELAY_MS;
 
   const sliderValue = Number(slider.value);
 
@@ -149,7 +149,6 @@ const algorithmsConfig = [
         while (end < this.barHeights.length) {
           if (this.barHeights[start] > this.barHeights[end]) {
             swap(this.barHeights, start, end);
-            clearCanvas(this.name);
             renderBars(this.name);
             await sleep(currentDelay());
 
@@ -157,8 +156,6 @@ const algorithmsConfig = [
             let previous = tmpStart - gap;
             while (previous > -1 && this.barHeights[previous] > this.barHeights[tmpStart]) {
               swap(this.barHeights, previous, tmpStart);
-
-              clearCanvas(this.name);
               renderBars(this.name);
               await sleep(currentDelay());
 
@@ -190,13 +187,11 @@ const algorithmsConfig = [
         if (arr[j] < pivot) {
           i++;
           swap(arr, i, j);
-          clearCanvas(this.name);
           renderBars(this.name);
           await sleep(currentDelay());
         }
       }
       swap(arr, i + 1, end);
-      clearCanvas(this.name);
       renderBars(this.name);
       await sleep(currentDelay());
       return i + 1;
@@ -223,7 +218,6 @@ const algorithmsConfig = [
             if (this.barHeights[j] > this.barHeights[j + 1]) {
               alreadySorted = false;
               swap(this.barHeights, j, j + 1);
-              clearCanvas(this.name);
               renderBars(this.name);
               await sleep(currentDelay());
             }
@@ -247,7 +241,6 @@ const algorithmsConfig = [
           }
         }
         swap(this.barHeights, indexMax, this.barHeights.length - 1 - i);
-        clearCanvas(this.name);
         renderBars(this.name);
         await sleep(currentDelay());
       }
@@ -265,7 +258,6 @@ const algorithmsConfig = [
         while (k > 0 && this.barHeights[k] < this.barHeights[k - 1]) {
           swap(this.barHeights, k, k - 1);
           k--;
-          clearCanvas(this.name);
           renderBars(this.name);
           await sleep(currentDelay());
         }
