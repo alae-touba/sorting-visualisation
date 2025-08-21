@@ -132,139 +132,152 @@ function swap(arr, i, j) {
   [arr[i], arr[j]] = [arr[j], arr[i]];
 }
 
-// ============ ALGORITHMS ============
-const algorithmsConfig = [
-  {
-    name: "shellSort",
-    barSpacing: CONFIG.DENSITY.DEFAULT,
-    barHeights: [],
-    async sort() {
-      toggleAlgorithmControls(this.name, true);
-      let gap = Math.floor(this.barHeights.length / 2);
+// ============ SORTING ALGORITHM CLASS ============
+class SortingAlgorithm {
+  constructor(name) {
+    if (this.constructor === SortingAlgorithm) {
+      throw new Error("Abstract class SortingAlgorithm cannot be instantiated directly");
+    }
+    this.name = name;
+    this.barSpacing = CONFIG.DENSITY.DEFAULT;
+    this.barHeights = [];
+  }
 
-      while (gap !== 0) {
-        let start = 0;
-        let end = start + gap;
+  async sort() {
+    throw new Error("Abstract method 'sort()' must be implemented in subclass");
+  }
+}
 
-        while (end < this.barHeights.length) {
-          if (this.barHeights[start] > this.barHeights[end]) {
-            swap(this.barHeights, start, end);
+class ShellSort extends SortingAlgorithm {
+  async sort() {
+    toggleAlgorithmControls(this.name, true);
+    let gap = Math.floor(this.barHeights.length / 2);
+
+    while (gap !== 0) {
+      let start = 0;
+      let end = start + gap;
+
+      while (end < this.barHeights.length) {
+        if (this.barHeights[start] > this.barHeights[end]) {
+          swap(this.barHeights, start, end);
+          renderBars(this.name);
+          await sleep(currentDelay());
+
+          let tmpStart = start;
+          let previous = tmpStart - gap;
+          while (previous > -1 && this.barHeights[previous] > this.barHeights[tmpStart]) {
+            swap(this.barHeights, previous, tmpStart);
             renderBars(this.name);
             await sleep(currentDelay());
 
-            let tmpStart = start;
-            let previous = tmpStart - gap;
-            while (previous > -1 && this.barHeights[previous] > this.barHeights[tmpStart]) {
-              swap(this.barHeights, previous, tmpStart);
-              renderBars(this.name);
-              await sleep(currentDelay());
+            tmpStart = previous;
+            previous = previous - gap;
+          }
+        }
+        start++;
+        end++;
+      }
+      gap = Math.floor(gap / 2);
+    }
+    toggleAlgorithmControls(this.name, false);
+  }
+}
 
-              tmpStart = previous;
-              previous = previous - gap;
-            }
-          }
-          start++;
-          end++;
-        }
-        gap = Math.floor(gap / 2);
-      }
-      toggleAlgorithmControls(this.name, false);
-    },
-  },
-  {
-    name: "quickSort",
-    barSpacing: CONFIG.DENSITY.DEFAULT,
-    barHeights: [],
-    async sort() {
-      toggleAlgorithmControls(this.name, true);
-      await this.quickSortHelper(this.barHeights, 0, this.barHeights.length - 1);
-      toggleAlgorithmControls(this.name, false);
-    },
-    async partition(arr, start, end) {
-      const pivot = arr[end];
-      let i = start - 1;
-      for (let j = start; j < end; j++) {
-        if (arr[j] < pivot) {
-          i++;
-          swap(arr, i, j);
-          renderBars(this.name);
-          await sleep(currentDelay());
-        }
-      }
-      swap(arr, i + 1, end);
-      renderBars(this.name);
-      await sleep(currentDelay());
-      return i + 1;
-    },
-    async quickSortHelper(arr, start, end) {
-      if (start < end) {
-        const idx = await this.partition(arr, start, end);
-        await this.quickSortHelper(arr, start, idx - 1);
-        await this.quickSortHelper(arr, idx + 1, end);
-      }
-    },
-  },
-  {
-    name: "bubbleSort",
-    barSpacing: CONFIG.DENSITY.DEFAULT,
-    barHeights: [],
-    async sort() {
-      toggleAlgorithmControls(this.name, true);
-      let alreadySorted = false;
-      for (let i = 0; i < this.barHeights.length - 1; i++) {
-        if (!alreadySorted) {
-          alreadySorted = true;
-          for (let j = 0; j < this.barHeights.length - 1 - i; j++) {
-            if (this.barHeights[j] > this.barHeights[j + 1]) {
-              alreadySorted = false;
-              swap(this.barHeights, j, j + 1);
-              renderBars(this.name);
-              await sleep(currentDelay());
-            }
-          }
-        }
-      }
-      toggleAlgorithmControls(this.name, false);
-    },
-  },
-  {
-    name: "selectionSort",
-    barSpacing: CONFIG.DENSITY.DEFAULT,
-    barHeights: [],
-    async sort() {
-      toggleAlgorithmControls(this.name, true);
-      for (let i = 0; i < this.barHeights.length - 1; i++) {
-        let indexMax = 0;
-        for (let j = 0; j < this.barHeights.length - i; j++) {
-          if (this.barHeights[j] > this.barHeights[indexMax]) {
-            indexMax = j;
-          }
-        }
-        swap(this.barHeights, indexMax, this.barHeights.length - 1 - i);
+class QuickSort extends SortingAlgorithm {
+  async sort() {
+    toggleAlgorithmControls(this.name, true);
+    await this.quickSortHelper(this.barHeights, 0, this.barHeights.length - 1);
+    toggleAlgorithmControls(this.name, false);
+  }
+
+  async partition(arr, start, end) {
+    const pivot = arr[end];
+    let i = start - 1;
+    for (let j = start; j < end; j++) {
+      if (arr[j] < pivot) {
+        i++;
+        swap(arr, i, j);
         renderBars(this.name);
         await sleep(currentDelay());
       }
-      toggleAlgorithmControls(this.name, false);
-    },
-  },
-  {
-    name: "insertionSort",
-    barSpacing: CONFIG.DENSITY.DEFAULT,
-    barHeights: [],
-    async sort() {
-      toggleAlgorithmControls(this.name, true);
-      for (let i = 1; i < this.barHeights.length; i++) {
-        let k = i;
-        while (k > 0 && this.barHeights[k] < this.barHeights[k - 1]) {
-          swap(this.barHeights, k, k - 1);
-          k--;
-          renderBars(this.name);
-          await sleep(currentDelay());
+    }
+    swap(arr, i + 1, end);
+    renderBars(this.name);
+    await sleep(currentDelay());
+    return i + 1;
+  }
+
+  async quickSortHelper(arr, start, end) {
+    if (start < end) {
+      const idx = await this.partition(arr, start, end);
+      await this.quickSortHelper(arr, start, idx - 1);
+      await this.quickSortHelper(arr, idx + 1, end);
+    }
+  }
+}
+
+class BubbleSort extends SortingAlgorithm {
+  async sort() {
+    toggleAlgorithmControls(this.name, true);
+    let alreadySorted = false;
+    for (let i = 0; i < this.barHeights.length - 1; i++) {
+      if (!alreadySorted) {
+        alreadySorted = true;
+        for (let j = 0; j < this.barHeights.length - 1 - i; j++) {
+          if (this.barHeights[j] > this.barHeights[j + 1]) {
+            alreadySorted = false;
+            swap(this.barHeights, j, j + 1);
+            renderBars(this.name);
+            await sleep(currentDelay());
+          }
         }
       }
-      toggleAlgorithmControls(this.name, false);
-    },
-  },
+    }
+    toggleAlgorithmControls(this.name, false);
+  }
+}
+
+class SelectionSort extends SortingAlgorithm {
+  async sort() {
+    toggleAlgorithmControls(this.name, true);
+    for (let i = 0; i < this.barHeights.length - 1; i++) {
+      let indexMax = 0;
+      for (let j = 0; j < this.barHeights.length - i; j++) {
+        if (this.barHeights[j] > this.barHeights[indexMax]) {
+          indexMax = j;
+        }
+      }
+      swap(this.barHeights, indexMax, this.barHeights.length - 1 - i);
+      renderBars(this.name);
+      await sleep(currentDelay());
+    }
+    toggleAlgorithmControls(this.name, false);
+  }
+}
+
+class InsertionSort extends SortingAlgorithm {
+  async sort() {
+    toggleAlgorithmControls(this.name, true);
+    for (let i = 1; i < this.barHeights.length; i++) {
+      let k = i;
+      while (k > 0 && this.barHeights[k] < this.barHeights[k - 1]) {
+        swap(this.barHeights, k, k - 1);
+        k--;
+        renderBars(this.name);
+        await sleep(currentDelay());
+      }
+    }
+    toggleAlgorithmControls(this.name, false);
+  }
+}
+
+// ============ ALGORITHMS CONFIGURATION ============
+const algorithmsConfig = [
+  new ShellSort("shellSort"),
+  new QuickSort("quickSort"),
+  new BubbleSort("bubbleSort"),
+  new SelectionSort("selectionSort"),
+  new InsertionSort("insertionSort")
 ];
 
 // Create a Map for O(1) lookup of algorithms by name
